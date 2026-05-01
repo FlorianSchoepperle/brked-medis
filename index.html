@@ -31,27 +31,30 @@
 <script type="text/babel">
 
 // ════════════════════════════════════════════════════════
-//  KONFIGURATION
+//  KONFIGURATION – Firebase Realtime Database URL eintragen
 // ════════════════════════════════════════════════════════
-const BLOB_ID = "019de35e-02b6-7075-8bee-1a79ee119cbe";
-const BLOB_URL = `https://jsonblob.com/api/jsonBlob/${BLOB_ID}`;
+const FIREBASE_URL = "https://brked-medis-default-rtdb.europe-west1.firebasedatabase.app";
+// Beispiel: "https://mein-projekt-default-rtdb.europe-west1.firebasedatabase.app"
 // ════════════════════════════════════════════════════════
+
+const DB_URL = FIREBASE_URL + "/ampullarium.json";
 
 const{useState,useEffect}=React;
 const genId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const hp=s=>btoa(unescape(encodeURIComponent(s)));
 
-const configured = BLOB_ID && !BLOB_ID.includes("DEINE_ID");
+const configured = FIREBASE_URL && !FIREBASE_URL.includes("DEINE_FIREBASE");
 
 async function loadData(){
   if(!configured) return null;
-  const r=await fetch(BLOB_URL,{headers:{"Content-Type":"application/json","Accept":"application/json"}});
+  const r=await fetch(DB_URL);
   if(!r.ok) throw new Error("Laden fehlgeschlagen: "+r.status);
-  return r.json();
+  const d=await r.json();
+  return d;
 }
 async function saveData(d){
   if(!configured) throw new Error("Nicht konfiguriert");
-  const r=await fetch(BLOB_URL,{method:"PUT",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(d)});
+  const r=await fetch(DB_URL,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)});
   if(!r.ok) throw new Error("Speichern fehlgeschlagen: "+r.status);
 }
 
