@@ -31,28 +31,27 @@
 <script type="text/babel">
 
 // ════════════════════════════════════════════════════════
-//  ⚙️  KONFIGURATION – hier nur diese eine Zeile ändern!
+//  KONFIGURATION
 // ════════════════════════════════════════════════════════
-const NPOINT_URL = "https://api.npoint.io/f66a94c3cb1aeae70618";
-// Beispiel: "https://api.npoint.io/abc123def456"
-// Anleitung: npoint.io → New Document → URL aus Adresszeile kopieren
+const BLOB_ID = "019de35e-02b6-7075-8bee-1a79ee119cbe";
+const BLOB_URL = `https://jsonblob.com/api/jsonBlob/${BLOB_ID}`;
 // ════════════════════════════════════════════════════════
 
 const{useState,useEffect}=React;
 const genId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const hp=s=>btoa(unescape(encodeURIComponent(s)));
 
-const configured = NPOINT_URL && !NPOINT_URL.includes("HIER_DEINE");
+const configured = BLOB_ID && !BLOB_ID.includes("DEINE_ID");
 
 async function loadData(){
   if(!configured) return null;
-  const r=await fetch(NPOINT_URL);
+  const r=await fetch(BLOB_URL,{headers:{"Content-Type":"application/json","Accept":"application/json"}});
   if(!r.ok) throw new Error("Laden fehlgeschlagen: "+r.status);
   return r.json();
 }
 async function saveData(d){
   if(!configured) throw new Error("Nicht konfiguriert");
-  const r=await fetch(NPOINT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)});
+  const r=await fetch(BLOB_URL,{method:"PUT",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(d)});
   if(!r.ok) throw new Error("Speichern fehlgeschlagen: "+r.status);
 }
 
