@@ -4,23 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ampullarium Manager</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  :root{
-    --bg:#0e1117;--surf:#161b27;--surf2:#1d2436;--surf3:#252d42;
-    --bdr:#2c3650;--red:#e03e40;--red-d:rgba(224,62,64,.14);
-    --grn:#2ec4b6;--grn-d:rgba(46,196,182,.12);
-    --yel:#f4b400;--yel-d:rgba(244,180,0,.12);
-    --blu:#4a9eff;--blu-d:rgba(74,158,255,.12);
-    --tx:#e8eaf0;--tx2:#8892a4;--tx3:#4a5568;
-    --r:10px;--rs:6px;--ff:'Syne',sans-serif;--fm:'JetBrains Mono',monospace;
-  }
-  html,body{min-height:100vh;background:var(--bg);color:var(--tx);font-family:var(--fm);font-size:14px}
-  input,select,button{font-family:var(--fm)}
-  ::-webkit-scrollbar{width:5px;height:5px}
-  ::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e1117;--surf:#161b27;--surf2:#1d2436;
+  --bdr:#2c3650;--red:#e03e40;--red-d:rgba(224,62,64,.14);
+  --grn:#2ec4b6;--grn-d:rgba(46,196,182,.12);
+  --yel:#f4b400;--yel-d:rgba(244,180,0,.12);
+  --blu:#4a9eff;--blu-d:rgba(74,158,255,.12);
+  --tx:#e8eaf0;--tx2:#8892a4;--tx3:#4a5568;
+  --r:10px;--rs:6px;--ff:'Syne',sans-serif;--fm:'JetBrains Mono',monospace;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--tx);font-family:var(--fm);font-size:14px}
+input,select,button{font-family:var(--fm)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
 </style>
 </head>
 <body>
@@ -30,393 +29,512 @@
 <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
 <script type="text/babel">
 
-// ════════════════════════════════════════════════════════
-//  KONFIGURATION – Firebase Realtime Database URL eintragen
-// ════════════════════════════════════════════════════════
-const FIREBASE_URL = "https://brked-medis-default-rtdb.europe-west1.firebasedatabase.app";
-// Beispiel: "https://mein-projekt-default-rtdb.europe-west1.firebasedatabase.app"
-// ════════════════════════════════════════════════════════
+var FIREBASE_URL = "https://brked-medis-default-rtdb.europe-west1.firebasedatabase.app";
+var DB_URL = FIREBASE_URL + "/ampullarium.json";
 
-const DB_URL = FIREBASE_URL + "/ampullarium.json";
+var DEFAULT_DATA = {
+  vp: btoa("rettung"),
+  ap: btoa("admin2025"),
+  zl: [],
+  amps: []
+};
 
-const{useState,useEffect}=React;
-const genId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
-const hp=s=>btoa(unescape(encodeURIComponent(s)));
+var R = React;
+var useState = R.useState;
+var useEffect = R.useEffect;
 
-const configured = FIREBASE_URL && !FIREBASE_URL.includes("DEINE_FIREBASE");
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function hp(s) { try { return btoa(unescape(encodeURIComponent(s))); } catch(e) { return btoa(s); } }
 
-async function loadData(){
-  if(!configured) return null;
-  const r=await fetch(DB_URL);
-  if(!r.ok) throw new Error("Laden fehlgeschlagen: "+r.status);
-  const d=await r.json();
-  return d;
-}
-async function saveData(d){
-  if(!configured) throw new Error("Nicht konfiguriert");
-  const r=await fetch(DB_URL,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)});
-  if(!r.ok) throw new Error("Speichern fehlgeschlagen: "+r.status);
+function loadData() {
+  return fetch(DB_URL)
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(d) { return (d && d.vp) ? d : DEFAULT_DATA; })
+    .catch(function() { return DEFAULT_DATA; });
 }
 
-const DEFAULT={vp:hp("rettung"),ap:hp("admin2025"),zl:[],amps:[]};
-
-function expiryStatus(ym){
-  if(!ym)return null;
-  const d=new Date(ym+"-01"),now=new Date();
-  const diff=Math.floor((d-now)/864e5);
-  if(diff<0)return"danger";if(diff<30)return"danger";if(diff<90)return"warning";return"success";
+function saveData(d) {
+  return fetch(DB_URL, {
+    method: "PUT",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(d)
+  }).then(function(r) {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+  });
 }
 
-const C={bg:"var(--bg)",surf:"var(--surf)",surf2:"var(--surf2)",bdr:"var(--bdr)",
-  red:"var(--red)",redD:"var(--red-d)",grn:"var(--grn)",grnD:"var(--grn-d)",
-  yel:"var(--yel)",yelD:"var(--yel-d)",blu:"var(--blu)",bluD:"var(--blu-d)",
-  tx:"var(--tx)",tx2:"var(--tx2)",tx3:"var(--tx3)",r:"var(--r)",rs:"var(--rs)"};
-
-function Badge({type="info",children}){
-  const m={danger:{bg:C.redD,c:C.red},warning:{bg:C.yelD,c:C.yel},success:{bg:C.grnD,c:C.grn},info:{bg:C.bluD,c:C.blu}};
-  const s=m[type]||m.info;
-  return<span style={{background:s.bg,color:s.c,padding:"3px 9px",borderRadius:100,fontSize:11,fontWeight:700,whiteSpace:"nowrap"}}>{children}</span>;
-}
-function ExpiryBadge({ym}){
-  if(!ym)return<span style={{color:C.tx3}}>—</span>;
-  const st=expiryStatus(ym);
-  const diff=Math.floor((new Date(ym+"-01")-new Date())/864e5);
-  return<Badge type={st||"success"}>{diff<0?"Abgelaufen":diff<30?`${diff}d`:ym}</Badge>;
-}
-function StockBadge({cur,req}){
-  const pct=req>0?(cur||0)/(req||1):1;
-  return<Badge type={(cur||0)===0?"danger":pct<0.5?"warning":"success"}>{cur||0}/{req||0}</Badge>;
+function expiryStatus(ym) {
+  if (!ym) return null;
+  var diff = Math.floor((new Date(ym + "-01") - new Date()) / 864e5);
+  return diff < 0 ? "danger" : diff < 30 ? "danger" : diff < 90 ? "warning" : "success";
 }
 
-const btnBase={display:"inline-flex",alignItems:"center",gap:6,fontFamily:"var(--fm)",fontWeight:700,borderRadius:"var(--rs)",cursor:"pointer",border:"none",whiteSpace:"nowrap"};
-function Btn({children,onClick,v="sec",sm=false,disabled=false,full=false}){
-  const vs={
-    pri:{background:C.red,color:"#fff"},
-    sec:{background:C.surf2,color:C.tx,border:`1px solid ${C.bdr}`},
-    grn:{background:C.grnD,color:C.grn,border:`1px solid rgba(46,196,182,.3)`},
-    dan:{background:C.redD,color:C.red,border:`1px solid rgba(224,62,64,.3)`},
-    gho:{background:"transparent",color:C.tx2,border:`1px solid ${C.bdr}`},
+var S = {
+  surf: "var(--surf)", s2: "var(--surf2)", bdr: "var(--bdr)",
+  red: "var(--red)", rD: "var(--red-d)", grn: "var(--grn)", gD: "var(--grn-d)",
+  yel: "var(--yel)", yD: "var(--yel-d)", blu: "var(--blu)", bD: "var(--blu-d)",
+  tx: "var(--tx)", t2: "var(--tx2)", t3: "var(--tx3)"
+};
+
+function Badge(props) {
+  var type = props.type || "info";
+  var m = {danger:{bg:S.rD,c:S.red}, warning:{bg:S.yD,c:S.yel}, success:{bg:S.gD,c:S.grn}, info:{bg:S.bD,c:S.blu}};
+  var st = m[type] || m.info;
+  return <span style={{background:st.bg,color:st.c,padding:"3px 9px",borderRadius:100,fontSize:11,fontWeight:700,whiteSpace:"nowrap"}}>{props.children}</span>;
+}
+
+function ExpiryBadge(props) {
+  var ym = props.ym;
+  if (!ym) return <span style={{color:S.t3}}>--</span>;
+  var diff = Math.floor((new Date(ym+"-01")-new Date())/864e5);
+  var lbl = diff<0 ? "Abgelaufen" : diff<30 ? (diff+"d") : ym;
+  return <Badge type={expiryStatus(ym)||"success"}>{lbl}</Badge>;
+}
+
+function StockBadge(props) {
+  var cur = props.cur||0, req = props.req||0;
+  var t = cur===0 ? "danger" : (req>0 && cur/req<0.5) ? "warning" : "success";
+  return <Badge type={t}>{cur}/{req}</Badge>;
+}
+
+function Btn(props) {
+  var vs = {
+    pri: {background:S.red,color:"#fff",border:"none"},
+    sec: {background:S.s2,color:S.tx,border:"1px solid "+S.bdr},
+    grn: {background:S.gD,color:S.grn,border:"1px solid rgba(46,196,182,.3)"},
+    dan: {background:S.rD,color:S.red,border:"1px solid rgba(224,62,64,.3)"},
+    gho: {background:"transparent",color:S.t2,border:"1px solid "+S.bdr},
   };
-  return<button onClick={onClick} disabled={disabled}
-    style={{...btnBase,...(vs[v]||vs.sec),padding:sm?"5px 11px":"9px 16px",fontSize:sm?11:13,
-      opacity:disabled?.45:1,cursor:disabled?"not-allowed":"pointer",width:full?"100%":"auto",justifyContent:full?"center":"flex-start"}}>
-    {children}</button>;
+  var v = vs[props.v] || vs.sec;
+  return <button onClick={props.onClick} disabled={props.disabled} style={Object.assign({},{
+    display:"inline-flex",alignItems:"center",gap:6,fontFamily:"var(--fm)",fontWeight:700,
+    borderRadius:"var(--rs)",cursor:props.disabled?"not-allowed":"pointer",whiteSpace:"nowrap",
+    padding:props.sm?"5px 11px":"9px 16px",fontSize:props.sm?11:13,
+    opacity:props.disabled?0.45:1,width:props.full?"100%":"auto",
+    justifyContent:props.full?"center":"flex-start"
+  },v)}>{props.children}</button>;
 }
-function Inp({label,value,onChange,type="text",placeholder="",req=false}){
-  return<div style={{marginBottom:14}}>
-    {label&&<label style={{display:"block",fontSize:11,color:C.tx2,marginBottom:5,textTransform:"uppercase",letterSpacing:1}}>{label}{req&&" *"}</label>}
-    <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder}
-      style={{width:"100%",padding:"10px 12px",fontSize:13,borderRadius:C.rs,border:`1px solid ${C.bdr}`,background:C.surf2,color:C.tx,outline:"none"}}/>
+
+function Inp(props) {
+  return <div style={{marginBottom:14}}>
+    {props.label && <label style={{display:"block",fontSize:11,color:S.t2,marginBottom:5,textTransform:"uppercase",letterSpacing:1}}>{props.label}{props.req&&" *"}</label>}
+    <input type={props.type||"text"} value={props.value} onChange={function(e){props.onChange(e.target.value);}} placeholder={props.placeholder||""}
+      style={{width:"100%",padding:"10px 12px",fontSize:13,borderRadius:"var(--rs)",border:"1px solid "+S.bdr,background:S.s2,color:S.tx,outline:"none"}}/>
   </div>;
 }
-function Selct({label,value,onChange,options}){
-  return<div style={{marginBottom:14}}>
-    {label&&<label style={{display:"block",fontSize:11,color:C.tx2,marginBottom:5,textTransform:"uppercase",letterSpacing:1}}>{label}</label>}
-    <select value={value} onChange={e=>onChange(e.target.value)}
-      style={{width:"100%",padding:"10px 12px",fontSize:13,borderRadius:C.rs,border:`1px solid ${C.bdr}`,background:C.surf2,color:C.tx,outline:"none",appearance:"none"}}>
-      {options.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}
+
+function Selct(props) {
+  return <div style={{marginBottom:14}}>
+    {props.label && <label style={{display:"block",fontSize:11,color:S.t2,marginBottom:5,textTransform:"uppercase",letterSpacing:1}}>{props.label}</label>}
+    <select value={props.value} onChange={function(e){props.onChange(e.target.value);}}
+      style={{width:"100%",padding:"10px 12px",fontSize:13,borderRadius:"var(--rs)",border:"1px solid "+S.bdr,background:S.s2,color:S.tx,outline:"none",appearance:"none"}}>
+      {props.options.map(function(o){ return <option key={o.v} value={o.v}>{o.l}</option>; })}
     </select>
   </div>;
 }
-function Modal({title,onClose,children,w=480}){
-  return<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:999,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"40px 16px",overflowY:"auto"}}
-    onClick={e=>e.target===e.currentTarget&&onClose()}>
-    <div style={{background:C.surf,border:`1px solid ${C.bdr}`,borderRadius:C.r,padding:24,width:"100%",maxWidth:w}}>
+
+function Modal(props) {
+  return <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:999,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"40px 16px",overflowY:"auto"}}
+    onClick={function(e){ if(e.target===e.currentTarget) props.onClose(); }}>
+    <div style={{background:S.surf,border:"1px solid "+S.bdr,borderRadius:"var(--r)",padding:24,width:"100%",maxWidth:props.w||480}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
-        <span style={{fontFamily:"var(--ff)",fontSize:18,fontWeight:800}}>{title}</span>
-        <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:C.tx2,padding:"2px 6px"}}>✕</button>
+        <span style={{fontFamily:"var(--ff)",fontSize:18,fontWeight:800}}>{props.title}</span>
+        <button onClick={props.onClose} style={{background:"none",border:"none",cursor:"pointer",fontSize:18,color:S.t2,padding:"2px 6px"}}>X</button>
       </div>
-      {children}
+      {props.children}
     </div>
   </div>;
 }
 
-function ZlForm({init,onSave,onCancel}){
-  const[f,setF]=useState({name:"",dosage:"",unit:"Ampulle",quantity:0,minStock:5,expiry:"",notes:"",...(init||{})});
-  const u=(k,v)=>setF(p=>({...p,[k]:v}));
-  return<div>
-    <Inp label="Name" value={f.name} onChange={v=>u("name",v)} req/><Inp label="Dosierung (z.B. 1 mg/ml)" value={f.dosage} onChange={v=>u("dosage",v)}/><Inp label="Einheit" value={f.unit} onChange={v=>u("unit",v)}/>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}><Inp label="Bestand" type="number" value={f.quantity} onChange={v=>u("quantity",+v||0)}/><Inp label="Mindestbestand" type="number" value={f.minStock} onChange={v=>u("minStock",+v||0)}/></div>
-    <Inp label="Verfall (JJJJ-MM)" value={f.expiry} onChange={v=>u("expiry",v)} placeholder="2026-12"/><Inp label="Notizen" value={f.notes} onChange={v=>u("notes",v)}/>
-    <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:4}}><Btn v="gho" onClick={onCancel}>Abbrechen</Btn><Btn v="pri" onClick={()=>f.name&&onSave(f)}>Speichern</Btn></div>
-  </div>;
-}
-function AmpForm({init,onSave,onCancel}){
-  const[f,setF]=useState({name:"",description:"",...(init||{})});
-  return<div>
-    <Inp label="Name (z.B. RTW 1)" value={f.name} onChange={v=>setF(p=>({...p,name:v}))} req/><Inp label="Beschreibung" value={f.description} onChange={v=>setF(p=>({...p,description:v}))}/>
-    <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:4}}><Btn v="gho" onClick={onCancel}>Abbrechen</Btn><Btn v="pri" onClick={()=>f.name&&onSave(f)}>Speichern</Btn></div>
-  </div>;
-}
-function AmpMedForm({init,onSave,onCancel,zl}){
-  const[f,setF]=useState({name:"",dosage:"",unit:"Ampulle",required:1,current:0,expiry:"",...(init||{})});
-  const u=(k,v)=>setF(p=>({...p,[k]:v}));
-  const pick=id=>{const z=zl.find(x=>x.id===id);if(z)setF(p=>({...p,name:z.name,dosage:z.dosage,unit:z.unit}));};
-  return<div>
-    {zl.length>0&&<Selct label="Aus Zentrallager übernehmen" value="" onChange={pick} options={[{v:"",l:"— Auswählen —"},...zl.map(z=>({v:z.id,l:`${z.name}${z.dosage?" ("+z.dosage+")":""}`}))]}/>}
-    <Inp label="Name" value={f.name} onChange={v=>u("name",v)} req/><Inp label="Dosierung" value={f.dosage} onChange={v=>u("dosage",v)}/><Inp label="Einheit" value={f.unit} onChange={v=>u("unit",v)}/>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}><Inp label="Sollbestand" type="number" value={f.required} onChange={v=>u("required",+v||0)}/><Inp label="Istbestand" type="number" value={f.current} onChange={v=>u("current",+v||0)}/></div>
-    <Inp label="Verfall (JJJJ-MM)" value={f.expiry} onChange={v=>u("expiry",v)} placeholder="2026-12"/>
-    <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:4}}><Btn v="gho" onClick={onCancel}>Abbrechen</Btn><Btn v="pri" onClick={()=>f.name&&onSave(f)}>Speichern</Btn></div>
-  </div>;
-}
-function RefillForm({amp,zl,onSave,onCancel}){
-  const[rows,setRows]=useState(amp.meds.map(m=>({medId:m.id,medName:m.name,cur:m.current||0,req:m.required||0,zlId:"",qty:0})));
-  const upd=(i,k,v)=>setRows(r=>r.map((x,j)=>j===i?{...x,[k]:v}:x));
-  if(!amp.meds.length)return<div><p style={{fontSize:13,color:C.tx2,textAlign:"center",padding:"1.5rem"}}>Keine Medikamente im Ampullarium</p><div style={{textAlign:"right"}}><Btn v="gho" onClick={onCancel}>Schließen</Btn></div></div>;
-  return<div>
-    <p style={{fontSize:12,color:C.tx2,marginBottom:12}}>Quelle und Menge für jedes Medikament wählen.</p>
-    {rows.map((r,i)=><div key={r.medId} style={{background:C.surf2,borderRadius:C.rs,padding:12,marginBottom:8}}>
-      <div style={{fontSize:13,fontWeight:700,marginBottom:7}}>{r.medName}<span style={{fontWeight:400,fontSize:11,color:C.tx2,marginLeft:8}}>Ist: {r.cur} / Soll: {r.req}</span></div>
-      <div style={{display:"flex",gap:8}}>
-        <select value={r.zlId} onChange={e=>upd(i,"zlId",e.target.value)} style={{flex:3,padding:"7px 9px",fontSize:12,borderRadius:C.rs,border:`1px solid ${C.bdr}`,background:C.surf,color:C.tx}}>
-          <option value="">— Quelle —</option>{zl.map(z=><option key={z.id} value={z.id}>{z.name} (Bestand: {z.quantity||0})</option>)}
-        </select>
-        <input type="number" min={0} value={r.qty} onChange={e=>upd(i,"qty",+e.target.value||0)} placeholder="Menge" style={{flex:1,padding:"7px 9px",fontSize:12,borderRadius:C.rs,border:`1px solid ${C.bdr}`,background:C.surf,color:C.tx}}/>
-      </div>
-    </div>)}
-    <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:8}}><Btn v="gho" onClick={onCancel}>Abbrechen</Btn><Btn v="grn" disabled={!rows.some(r=>r.qty>0&&r.zlId)} onClick={()=>onSave(rows.filter(r=>r.qty>0&&r.zlId))}>Auffüllen</Btn></div>
-  </div>;
-}
-function PwForm({onSave}){
-  const[vp,setVp]=useState("");const[ap,setAp]=useState("");
-  return<div><Inp label="Neues Betrachter-Passwort" type="password" value={vp} onChange={setVp}/><Inp label="Neues Admin-Passwort" type="password" value={ap} onChange={setAp}/><Btn v="pri" disabled={!vp||!ap} onClick={()=>onSave(vp,ap)}>Speichern</Btn></div>;
-}
-
-function Sidebar({mode,view,setView,onLogout,saving}){
-  const nav=[{id:"dashboard",lbl:"Übersicht",ico:"▦"},{id:"zentrallager",lbl:"Zentrallager",ico:"⬡"},{id:"ampullarien",lbl:"Ampullarien",ico:"◧"},...(mode==="admin"?[{id:"settings",lbl:"Einstellungen",ico:"⚙"}]:[])];
-  const cur=view==="amp-detail"?"ampullarien":view;
-  return<aside style={{width:210,minHeight:"100vh",background:C.surf,borderRight:`1px solid ${C.bdr}`,display:"flex",flexDirection:"column",flexShrink:0}}>
-    <div style={{padding:"22px 18px",borderBottom:`1px solid ${C.bdr}`}}>
-      <div style={{fontFamily:"var(--ff)",fontSize:20,fontWeight:800,letterSpacing:-.5}}>💊 Ampullarium</div>
-      <div style={{fontSize:9,color:C.tx2,letterSpacing:2,textTransform:"uppercase",marginTop:4}}>Medikamentenverwaltung</div>
-      <div style={{marginTop:10}}><Badge type={mode==="admin"?"danger":"info"}>{mode==="admin"?"Admin-Modus":"Betrachter"}</Badge></div>
+function ZlForm(props) {
+  var def = {name:"",dosage:"",unit:"Ampulle",quantity:0,minStock:5,expiry:"",notes:""};
+  var [f, setF] = useState(Object.assign({},def,props.init||{}));
+  function u(k,v){ setF(function(p){ var n=Object.assign({},p); n[k]=v; return n; }); }
+  return <div>
+    <Inp label="Name" value={f.name} onChange={function(v){u("name",v);}} req={true}/>
+    <Inp label="Dosierung" value={f.dosage} onChange={function(v){u("dosage",v);}}/>
+    <Inp label="Einheit" value={f.unit} onChange={function(v){u("unit",v);}}/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+      <Inp label="Bestand" type="number" value={f.quantity} onChange={function(v){u("quantity",parseInt(v)||0);}}/>
+      <Inp label="Mindestbestand" type="number" value={f.minStock} onChange={function(v){u("minStock",parseInt(v)||0);}}/>
     </div>
-    <nav style={{flex:1,padding:"12px 10px"}}>
-      {nav.map(n=><button key={n.id} onClick={()=>setView(n.id)} style={{display:"flex",alignItems:"center",gap:9,width:"100%",padding:"10px 12px",borderRadius:C.rs,background:cur===n.id?"var(--red-d)":"transparent",border:"none",cursor:"pointer",fontSize:13,fontFamily:"var(--fm)",color:cur===n.id?C.red:C.tx2,fontWeight:cur===n.id?700:400,textAlign:"left",marginBottom:2}}>
-        <span style={{fontSize:14,width:18,textAlign:"center"}}>{n.ico}</span>{n.lbl}
-      </button>)}
-    </nav>
-    <div style={{padding:"14px 10px",borderTop:`1px solid ${C.bdr}`}}>
-      {saving&&<div style={{fontSize:11,color:C.tx3,textAlign:"center",marginBottom:8}}>Speichern…</div>}
-      <Btn v="gho" full onClick={onLogout}>Abmelden</Btn>
-    </div>
-  </aside>;
-}
-
-function Table({headers,rows}){
-  return<div style={{background:C.surf,border:`1px solid ${C.bdr}`,borderRadius:C.r,overflow:"hidden"}}>
-    <div style={{overflowX:"auto"}}>
-      <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-        <thead><tr style={{background:C.surf2,borderBottom:`1px solid ${C.bdr}`}}>{headers.map(h=><th key={h} style={{padding:"11px 16px",textAlign:"left",fontSize:11,color:C.tx2,textTransform:"uppercase",letterSpacing:1.2,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
-        <tbody>{rows.map((row,i)=><tr key={i} style={{borderBottom:i<rows.length-1?`1px solid ${C.bdr}`:"none"}}>{row.map((cell,j)=><td key={j} style={{padding:"11px 16px",verticalAlign:"middle"}}>{cell}</td>)}</tr>)}</tbody>
-      </table>
+    <Inp label="Verfall (JJJJ-MM)" value={f.expiry} onChange={function(v){u("expiry",v);}} placeholder="2026-12"/>
+    <Inp label="Notizen" value={f.notes} onChange={function(v){u("notes",v);}}/>
+    <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:4}}>
+      <Btn v="gho" onClick={props.onCancel}>Abbrechen</Btn>
+      <Btn v="pri" onClick={function(){ if(f.name) props.onSave(f); }}>Speichern</Btn>
     </div>
   </div>;
 }
 
-function App(){
-  const[loading,setLoading]=useState(true);
-  const[data,setData]=useState(null);
-  const[mode,setMode]=useState(null);
-  const[view,setView]=useState("dashboard");
-  const[selAmp,setSelAmp]=useState(null);
-  const[modal,setModal]=useState(null);
-  const[pw,setPw]=useState("");const[pwErr,setPwErr]=useState("");
-  const[firstTime,setFirstTime]=useState(false);
-  const[saving,setSaving]=useState(false);
-  const[toast,setToast]=useState(null);
-  const[configErr,setConfigErr]=useState(!configured);
+function AmpForm(props) {
+  var [f, setF] = useState(Object.assign({name:"",description:""},props.init||{}));
+  return <div>
+    <Inp label="Name (z.B. RTW 1)" value={f.name} onChange={function(v){setF(function(p){return Object.assign({},p,{name:v});});}} req={true}/>
+    <Inp label="Beschreibung" value={f.description} onChange={function(v){setF(function(p){return Object.assign({},p,{description:v});});}}/>
+    <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:4}}>
+      <Btn v="gho" onClick={props.onCancel}>Abbrechen</Btn>
+      <Btn v="pri" onClick={function(){ if(f.name) props.onSave(f); }}>Speichern</Btn>
+    </div>
+  </div>;
+}
 
-  useEffect(()=>{
-    if(!configured){setLoading(false);return;}
-    loadData().then(d=>{setData(d||DEFAULT);if(!d||(!d.zl?.length&&!d.amps?.length))setFirstTime(true);}).catch(()=>{setData(DEFAULT);setFirstTime(true);}).finally(()=>setLoading(false));
-  },[]);
+function AmpMedForm(props) {
+  var def = {name:"",dosage:"",unit:"Ampulle",required:1,current:0,expiry:""};
+  var [f, setF] = useState(Object.assign({},def,props.init||{}));
+  function u(k,v){ setF(function(p){ var n=Object.assign({},p); n[k]=v; return n; }); }
+  function pick(id) {
+    var z = props.zl.find(function(x){return x.id===id;});
+    if(z) setF(function(p){return Object.assign({},p,{name:z.name,dosage:z.dosage,unit:z.unit});});
+  }
+  return <div>
+    {props.zl.length>0 && <Selct label="Aus Zentrallager" value="" onChange={pick}
+      options={[{v:"",l:"-- Auswaehlen --"}].concat(props.zl.map(function(z){return {v:z.id,l:z.name+(z.dosage?" ("+z.dosage+")":"")};}))}/> }
+    <Inp label="Name" value={f.name} onChange={function(v){u("name",v);}} req={true}/>
+    <Inp label="Dosierung" value={f.dosage} onChange={function(v){u("dosage",v);}}/>
+    <Inp label="Einheit" value={f.unit} onChange={function(v){u("unit",v);}}/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+      <Inp label="Sollbestand" type="number" value={f.required} onChange={function(v){u("required",parseInt(v)||0);}}/>
+      <Inp label="Istbestand" type="number" value={f.current} onChange={function(v){u("current",parseInt(v)||0);}}/>
+    </div>
+    <Inp label="Verfall (JJJJ-MM)" value={f.expiry} onChange={function(v){u("expiry",v);}} placeholder="2026-12"/>
+    <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:4}}>
+      <Btn v="gho" onClick={props.onCancel}>Abbrechen</Btn>
+      <Btn v="pri" onClick={function(){ if(f.name) props.onSave(f); }}>Speichern</Btn>
+    </div>
+  </div>;
+}
 
-  const save=async nd=>{
-    setSaving(true);
-    try{await saveData(nd);setData(nd);showToast("Gespeichert ✓");}
-    catch(e){showToast("Fehler: "+e.message,"err");}
-    setSaving(false);
-  };
-  const showToast=(msg,t="ok")=>{setToast({msg,t});setTimeout(()=>setToast(null),3000);};
-  const login=()=>{
-    if(!data)return;
-    if(hp(pw)===data.ap){setMode("admin");setPwErr("");}
-    else if(hp(pw)===data.vp){setMode("viewer");setPwErr("");}
-    else setPwErr("Falsches Passwort");
-  };
+function RefillForm(props) {
+  var [rows, setRows] = useState(props.amp.meds.map(function(m){
+    return {medId:m.id,medName:m.name,cur:m.current||0,req:m.required||0,zlId:"",qty:0};
+  }));
+  function upd(i,k,v){ setRows(function(r){ return r.map(function(x,j){ if(j!==i) return x; var n=Object.assign({},x); n[k]=v; return n; }); }); }
+  if(!props.amp.meds.length) return <div>
+    <p style={{fontSize:13,color:S.t2,textAlign:"center",padding:"1.5rem"}}>Keine Medikamente</p>
+    <div style={{textAlign:"right"}}><Btn v="gho" onClick={props.onCancel}>Schliessen</Btn></div>
+  </div>;
+  var ok = rows.some(function(r){return r.qty>0&&r.zlId;});
+  return <div>
+    <p style={{fontSize:12,color:S.t2,marginBottom:12}}>Quelle und Menge waehlen.</p>
+    {rows.map(function(r,i){
+      return <div key={r.medId} style={{background:S.s2,borderRadius:"var(--rs)",padding:12,marginBottom:8}}>
+        <div style={{fontSize:13,fontWeight:700,marginBottom:7}}>{r.medName}
+          <span style={{fontWeight:400,fontSize:11,color:S.t2,marginLeft:8}}>Ist: {r.cur} / Soll: {r.req}</span>
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          <select value={r.zlId} onChange={function(e){upd(i,"zlId",e.target.value);}}
+            style={{flex:3,padding:"7px 9px",fontSize:12,borderRadius:"var(--rs)",border:"1px solid "+S.bdr,background:S.surf,color:S.tx}}>
+            <option value="">-- Quelle --</option>
+            {props.zl.map(function(z){return <option key={z.id} value={z.id}>{z.name} ({z.quantity||0})</option>;})}
+          </select>
+          <input type="number" min={0} value={r.qty} onChange={function(e){upd(i,"qty",parseInt(e.target.value)||0);}} placeholder="Menge"
+            style={{flex:1,padding:"7px 9px",fontSize:12,borderRadius:"var(--rs)",border:"1px solid "+S.bdr,background:S.surf,color:S.tx}}/>
+        </div>
+      </div>;
+    })}
+    <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:8}}>
+      <Btn v="gho" onClick={props.onCancel}>Abbrechen</Btn>
+      <Btn v="grn" disabled={!ok} onClick={function(){props.onSave(rows.filter(function(r){return r.qty>0&&r.zlId;}));}}>Auffuellen</Btn>
+    </div>
+  </div>;
+}
 
-  const ops={
-    addZl:async i=>{await save({...data,zl:[...data.zl,{...i,id:genId()}]});setModal(null);},
-    editZl:async(id,i)=>{await save({...data,zl:data.zl.map(x=>x.id===id?{...x,...i}:x)});setModal(null);},
-    delZl:async id=>{await save({...data,zl:data.zl.filter(x=>x.id!==id)});setModal(null);},
-    addAmp:async a=>{await save({...data,amps:[...data.amps,{...a,id:genId(),meds:[]}]});setModal(null);},
-    editAmp:async(id,a)=>{await save({...data,amps:data.amps.map(x=>x.id===id?{...x,...a}:x)});setModal(null);},
-    delAmp:async id=>{await save({...data,amps:data.amps.filter(x=>x.id!==id)});if(selAmp===id){setSelAmp(null);setView("ampullarien");}setModal(null);},
-    addMed:async(aid,m)=>{await save({...data,amps:data.amps.map(a=>a.id===aid?{...a,meds:[...a.meds,{...m,id:genId()}]}:a)});setModal(null);},
-    editMed:async(aid,mid,m)=>{await save({...data,amps:data.amps.map(a=>a.id===aid?{...a,meds:a.meds.map(x=>x.id===mid?{...x,...m}:x)}:a)});setModal(null);},
-    delMed:async(aid,mid)=>{await save({...data,amps:data.amps.map(a=>a.id===aid?{...a,meds:a.meds.filter(m=>m.id!==mid)}:a)});setModal(null);},
-    refill:async(aid,refills)=>{
-      let nd={...data,zl:[...data.zl],amps:[...data.amps]};
-      for(const r of refills){
-        nd.zl=nd.zl.map(z=>z.id===r.zlId?{...z,quantity:Math.max(0,(z.quantity||0)-r.qty)}:z);
-        nd.amps=nd.amps.map(a=>a.id===aid?{...a,meds:a.meds.map(m=>m.id===r.medId?{...m,current:(m.current||0)+r.qty}:m)}:a);
-      }
-      await save(nd);setModal(null);showToast("Aufgefüllt ✓");
-    },
-    changePw:async(vp,ap)=>{await save({...data,vp:hp(vp),ap:hp(ap)});setModal(null);showToast("Passwörter geändert ✓");}
-  };
+function PwForm(props) {
+  var [vp, setVp] = useState("");
+  var [ap, setAp] = useState("");
+  return <div>
+    <Inp label="Neues Betrachter-Passwort" type="password" value={vp} onChange={setVp}/>
+    <Inp label="Neues Admin-Passwort" type="password" value={ap} onChange={setAp}/>
+    <Btn v="pri" disabled={!vp||!ap} onClick={function(){props.onSave(vp,ap);}}>Speichern</Btn>
+  </div>;
+}
 
-  const warnings=[];
-  if(data){
-    data.zl.forEach(z=>{
-      const st=expiryStatus(z.expiry);
-      if(st==="danger"||st==="warning")warnings.push({t:st,msg:`ZL: ${z.name} – Verfall ${z.expiry}`});
-      if(z.minStock&&(z.quantity||0)<z.minStock)warnings.push({t:"warning",msg:`ZL: ${z.name} – Bestand niedrig (${z.quantity||0}/${z.minStock})`});
+function App() {
+  var [loading, setLoading] = useState(true);
+  var [data, setData] = useState(null);
+  var [mode, setMode] = useState(null);
+  var [view, setView] = useState("dashboard");
+  var [selAmp, setSelAmp] = useState(null);
+  var [modal, setModal] = useState(null);
+  var [pw, setPw] = useState("");
+  var [pwErr, setPwErr] = useState("");
+  var [firstTime, setFirstTime] = useState(false);
+  var [saving, setSaving] = useState(false);
+  var [toast, setToast] = useState(null);
+
+  useEffect(function(){
+    loadData().then(function(d){
+      setData(d);
+      if(!d.zl||!d.zl.length) setFirstTime(true);
+      setLoading(false);
     });
-    data.amps.forEach(a=>a.meds.forEach(m=>{
-      const st=expiryStatus(m.expiry);
-      if(st==="danger"||st==="warning")warnings.push({t:st,msg:`${a.name}: ${m.name} – Verfall ${m.expiry}`});
-      if((m.current||0)<(m.required||0))warnings.push({t:(m.current||0)===0?"danger":"warning",msg:`${a.name}: ${m.name} – ${m.current||0}/${m.required||0}`});
-    }));
+  }, []);
+
+  function showToast(msg, t) {
+    setToast({msg:msg, t:t||"ok"});
+    setTimeout(function(){setToast(null);}, 3000);
   }
 
-  // ── Nicht konfiguriert ──
-  if(configErr)return<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",padding:"1rem"}}>
-    <div style={{background:C.surf,border:`1px solid ${C.bdr}`,borderRadius:C.r,padding:32,maxWidth:500,textAlign:"center"}}>
-      <div style={{fontSize:40,marginBottom:16}}>⚙️</div>
-      <div style={{fontFamily:"var(--ff)",fontSize:20,fontWeight:800,marginBottom:12}}>Noch nicht konfiguriert</div>
-      <div style={{fontSize:13,color:C.tx2,lineHeight:1.7,marginBottom:20,textAlign:"left"}}>
-        <strong style={{color:C.tx}}>1.</strong> Gehe auf <a href="https://npoint.io" target="_blank" style={{color:C.blu}}>npoint.io</a> → „New Document" → folgenden Text einfügen und speichern:<br/>
-        <code style={{display:"block",background:C.surf2,padding:10,borderRadius:C.rs,marginTop:8,marginBottom:8,fontSize:11,wordBreak:"break-all"}}>
-          {`{"vp":"cmV0dHVuZw==","ap":"YWRtaW4yMDI1","zl":[],"amps":[]}`}
-        </code>
-        <strong style={{color:C.tx}}>2.</strong> Öffne diese Datei (<code style={{fontSize:11}}>index.html</code>) in einem Texteditor<br/>
-        <strong style={{color:C.tx}}>3.</strong> Ersetze <code style={{fontSize:11}}>https://api.npoint.io/f66a94c3cb1aeae70618</code> durch deine API-URL (z.B. <code style={{fontSize:11}}>https://api.npoint.io/abc123</code>)<br/>
-        <strong style={{color:C.tx}}>4.</strong> Datei speichern und auf GitHub Pages hochladen
-      </div>
-    </div>
-  </div>;
+  function doSave(nd) {
+    setSaving(true);
+    saveData(nd).then(function(){
+      setData(nd);
+      showToast("Gespeichert");
+      setSaving(false);
+    }).catch(function(e){
+      showToast("Fehler: "+e.message, "err");
+      setSaving(false);
+    });
+  }
 
-  // ── Laden ──
-  if(loading)return<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",color:C.tx2,fontSize:13}}>⏳ Lade Daten…</div>;
+  function login() {
+    if(!data) return;
+    if(hp(pw)===data.ap){ setMode("admin"); setPwErr(""); }
+    else if(hp(pw)===data.vp){ setMode("viewer"); setPwErr(""); }
+    else setPwErr("Falsches Passwort");
+  }
 
-  // ── Login ──
-  if(!mode)return<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",padding:"1rem",background:`radial-gradient(ellipse at 30% 50%,rgba(224,62,64,.06) 0%,transparent 60%),${C.bg}`}}>
-    <div style={{background:C.surf,border:`1px solid ${C.bdr}`,borderRadius:C.r,padding:40,width:"100%",maxWidth:400}}>
+  function addZl(item){ var nd=Object.assign({},data,{zl:data.zl.concat([Object.assign({},item,{id:genId()})])}); doSave(nd); setModal(null); }
+  function editZl(id,item){ var nd=Object.assign({},data,{zl:data.zl.map(function(x){return x.id===id?Object.assign({},x,item):x;})}); doSave(nd); setModal(null); }
+  function delZl(id){ var nd=Object.assign({},data,{zl:data.zl.filter(function(x){return x.id!==id;})}); doSave(nd); setModal(null); }
+  function addAmp(a){ var nd=Object.assign({},data,{amps:data.amps.concat([Object.assign({},a,{id:genId(),meds:[]})])}); doSave(nd); setModal(null); }
+  function editAmp(id,a){ var nd=Object.assign({},data,{amps:data.amps.map(function(x){return x.id===id?Object.assign({},x,a):x;})}); doSave(nd); setModal(null); }
+  function delAmp(id){ var nd=Object.assign({},data,{amps:data.amps.filter(function(x){return x.id!==id;})}); doSave(nd); setModal(null); if(selAmp===id){setSelAmp(null);setView("ampullarien");} }
+  function addMed(aid,m){ var nd=Object.assign({},data,{amps:data.amps.map(function(a){return a.id===aid?Object.assign({},a,{meds:a.meds.concat([Object.assign({},m,{id:genId()})])}):a;})}); doSave(nd); setModal(null); }
+  function editMed(aid,mid,m){ var nd=Object.assign({},data,{amps:data.amps.map(function(a){return a.id===aid?Object.assign({},a,{meds:a.meds.map(function(x){return x.id===mid?Object.assign({},x,m):x;})}):a;})}); doSave(nd); setModal(null); }
+  function delMed(aid,mid){ var nd=Object.assign({},data,{amps:data.amps.map(function(a){return a.id===aid?Object.assign({},a,{meds:a.meds.filter(function(m){return m.id!==mid;})}):a;})}); doSave(nd); setModal(null); }
+  function refill(aid,refills){
+    var nd=Object.assign({},data,{zl:data.zl.slice(),amps:data.amps.slice()});
+    refills.forEach(function(r){
+      nd.zl=nd.zl.map(function(z){return z.id===r.zlId?Object.assign({},z,{quantity:Math.max(0,(z.quantity||0)-r.qty)}):z;});
+      nd.amps=nd.amps.map(function(a){return a.id===aid?Object.assign({},a,{meds:a.meds.map(function(m){return m.id===r.medId?Object.assign({},m,{current:(m.current||0)+r.qty}):m;})}):a;});
+    });
+    doSave(nd); setModal(null); showToast("Aufgefuellt");
+  }
+  function changePw(vp,ap){ var nd=Object.assign({},data,{vp:hp(vp),ap:hp(ap)}); doSave(nd); setModal(null); showToast("Passwoerter geaendert"); }
+
+  var warnings = [];
+  if(data){
+    data.zl.forEach(function(z){
+      var st=expiryStatus(z.expiry);
+      if(st==="danger"||st==="warning") warnings.push({t:st,msg:"ZL: "+z.name+" - Verfall "+z.expiry});
+      if(z.minStock&&(z.quantity||0)<z.minStock) warnings.push({t:"warning",msg:"ZL: "+z.name+" - Bestand niedrig"});
+    });
+    data.amps.forEach(function(a){
+      a.meds.forEach(function(m){
+        var st=expiryStatus(m.expiry);
+        if(st==="danger"||st==="warning") warnings.push({t:st,msg:a.name+": "+m.name+" - Verfall "+m.expiry});
+        if((m.current||0)<(m.required||0)) warnings.push({t:(m.current||0)===0?"danger":"warning",msg:a.name+": "+m.name+" - "+(m.current||0)+"/"+(m.required||0)});
+      });
+    });
+  }
+
+  if(loading) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",color:S.t2,fontSize:13}}>Lade Daten...</div>;
+
+  if(!mode) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",padding:"1rem",background:"var(--bg)"}}>
+    <div style={{background:S.surf,border:"1px solid "+S.bdr,borderRadius:"var(--r)",padding:40,width:"100%",maxWidth:400}}>
       <div style={{marginBottom:28,textAlign:"center"}}>
-        <div style={{fontSize:40,marginBottom:10}}>💊</div>
-        <div style={{fontFamily:"var(--ff)",fontSize:26,fontWeight:800,letterSpacing:-.5,marginBottom:4}}>Ampullarium Manager</div>
-        <div style={{fontSize:12,color:C.tx2}}>Medikamentenverwaltung für den Rettungsdienst</div>
+        <div style={{fontSize:40,marginBottom:10}}>+</div>
+        <div style={{fontFamily:"var(--ff)",fontSize:26,fontWeight:800,marginBottom:4}}>Ampullarium Manager</div>
+        <div style={{fontSize:12,color:S.t2}}>Medikamentenverwaltung</div>
       </div>
-      {firstTime&&<div style={{background:C.bluD,border:`1px solid rgba(74,158,255,.2)`,borderRadius:C.rs,padding:"10px 14px",marginBottom:16,fontSize:12,color:C.blu,lineHeight:1.6}}>
-        <strong>Erststart:</strong> Betrachter-PW: <code>rettung</code> · Admin-PW: <code>admin2025</code><br/><span style={{fontSize:10,opacity:.8}}>Bitte sofort unter Einstellungen ändern!</span>
+      {firstTime&&<div style={{background:S.bD,borderRadius:"var(--rs)",padding:"10px 14px",marginBottom:16,fontSize:12,color:S.blu,lineHeight:1.6}}>
+        Standard: Betrachter: <strong>rettung</strong> / Admin: <strong>admin2025</strong>
       </div>}
-      {pwErr&&<div style={{background:C.redD,border:`1px solid rgba(224,62,64,.2)`,borderRadius:C.rs,padding:"9px 13px",marginBottom:14,fontSize:12,color:C.red}}>{pwErr}</div>}
+      {pwErr&&<div style={{background:S.rD,borderRadius:"var(--rs)",padding:"9px 13px",marginBottom:14,fontSize:12,color:S.red}}>{pwErr}</div>}
       <Inp label="Passwort" type="password" value={pw} onChange={setPw}/>
-      <Btn v="pri" full onClick={login}>Anmelden</Btn>
-      <p style={{fontSize:11,color:C.tx3,textAlign:"center",marginTop:12}}>Betrachter-PW: nur lesen · Admin-PW: bearbeiten</p>
+      <Btn v="pri" full={true} onClick={login}>Anmelden</Btn>
+      <p style={{fontSize:11,color:S.t3,textAlign:"center",marginTop:12}}>Betrachter: lesen | Admin: bearbeiten</p>
     </div>
   </div>;
 
-  // ── App ──
-  const amp=selAmp?data.amps.find(a=>a.id===selAmp):null;
+  var amp = selAmp ? data.amps.find(function(a){return a.id===selAmp;}) : null;
+  var nav = [{id:"dashboard",lbl:"Uebersicht"},{id:"zentrallager",lbl:"Zentrallager"},{id:"ampullarien",lbl:"Ampullarien"}];
+  if(mode==="admin") nav.push({id:"settings",lbl:"Einstellungen"});
+  var cur = view==="amp-detail"?"ampullarien":view;
 
-  return<div style={{display:"flex",minHeight:"100vh"}}>
-    <Sidebar mode={mode} view={view} setView={v=>{setView(v);setSelAmp(null);}} onLogout={()=>setMode(null)} saving={saving}/>
-    <main style={{flex:1,padding:28,overflowX:"auto",position:"relative"}}>
-      {toast&&<div style={{position:"fixed",bottom:22,right:22,zIndex:9999,background:toast.t==="err"?C.redD:C.grnD,color:toast.t==="err"?C.red:C.grn,border:`1px solid ${toast.t==="err"?"rgba(224,62,64,.3)":"rgba(46,196,182,.3)"}`,padding:"10px 18px",borderRadius:C.rs,fontSize:13,fontWeight:700}}>{toast.msg}</div>}
+  return <div style={{display:"flex",minHeight:"100vh"}}>
+    <aside style={{width:200,minHeight:"100vh",background:S.surf,borderRight:"1px solid "+S.bdr,display:"flex",flexDirection:"column",flexShrink:0}}>
+      <div style={{padding:"20px 16px",borderBottom:"1px solid "+S.bdr}}>
+        <div style={{fontFamily:"var(--ff)",fontSize:18,fontWeight:800}}>Ampullarium</div>
+        <div style={{fontSize:9,color:S.t2,letterSpacing:2,textTransform:"uppercase",marginTop:4}}>Manager</div>
+        <div style={{marginTop:10}}><Badge type={mode==="admin"?"danger":"info"}>{mode==="admin"?"Admin":"Betrachter"}</Badge></div>
+      </div>
+      <nav style={{flex:1,padding:"12px 8px"}}>
+        {nav.map(function(n){
+          return <button key={n.id} onClick={function(){setView(n.id);setSelAmp(null);}}
+            style={{display:"flex",alignItems:"center",width:"100%",padding:"10px 12px",borderRadius:"var(--rs)",
+              background:cur===n.id?"var(--red-d)":"transparent",border:"none",cursor:"pointer",fontSize:13,
+              fontFamily:"var(--fm)",color:cur===n.id?S.red:S.t2,fontWeight:cur===n.id?700:400,textAlign:"left",marginBottom:2}}>
+            {n.lbl}
+          </button>;
+        })}
+      </nav>
+      <div style={{padding:"14px 8px",borderTop:"1px solid "+S.bdr}}>
+        {saving&&<div style={{fontSize:11,color:S.t3,textAlign:"center",marginBottom:8}}>Speichern...</div>}
+        <Btn v="gho" full={true} onClick={function(){setMode(null);}}>Abmelden</Btn>
+      </div>
+    </aside>
 
-      {/* DASHBOARD */}
+    <main style={{flex:1,padding:24,overflowX:"auto",background:"var(--bg)"}}>
+      {toast&&<div style={{position:"fixed",bottom:22,right:22,zIndex:9999,background:toast.t==="err"?S.rD:S.gD,color:toast.t==="err"?S.red:S.grn,border:"1px solid rgba(0,0,0,.2)",padding:"10px 18px",borderRadius:"var(--rs)",fontSize:13,fontWeight:700}}>{toast.msg}</div>}
+
       {view==="dashboard"&&<div>
-        <div style={{fontFamily:"var(--ff)",fontSize:24,fontWeight:800,marginBottom:18}}>Übersicht</div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(170px,1fr))",gap:14,marginBottom:24}}>
-          {[{lbl:"Ampullarien",val:data.amps.length},{lbl:"Zentrallager",val:`${data.zl.length} Artikel`},{lbl:"Kritisch",val:warnings.filter(w=>w.t==="danger").length,t:warnings.filter(w=>w.t==="danger").length>0?"danger":null},{lbl:"Warnungen",val:warnings.filter(w=>w.t==="warning").length,t:warnings.filter(w=>w.t==="warning").length>0?"warning":null}].map(s=>(
-            <div key={s.lbl} style={{background:C.surf,border:`1px solid ${C.bdr}`,borderRadius:C.r,padding:18}}>
-              <div style={{fontSize:11,color:C.tx2,textTransform:"uppercase",letterSpacing:1.2,marginBottom:8}}>{s.lbl}</div>
-              <div style={{fontFamily:"var(--ff)",fontSize:34,fontWeight:800,color:s.t?`var(--${s.t==="danger"?"red":"yel"})`:C.tx}}>{s.val}</div>
-            </div>
-          ))}
-        </div>
-        {warnings.length>0?<div style={{background:C.surf,border:`1px solid ${C.bdr}`,borderRadius:C.r,overflow:"hidden"}}>
-          <div style={{padding:"12px 18px",borderBottom:`1px solid ${C.bdr}`,fontSize:13,fontWeight:700}}>Hinweise</div>
-          {warnings.map((w,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 18px",borderBottom:i<warnings.length-1?`1px solid ${C.bdr}`:"none",background:w.t==="danger"?C.redD:C.yelD}}>
-            <span style={{color:w.t==="danger"?C.red:C.yel,fontSize:8}}>●</span>
-            <span style={{fontSize:13,color:w.t==="danger"?C.red:C.yel}}>{w.msg}</span>
-          </div>)}
-        </div>:<div style={{textAlign:"center",padding:"3rem",color:C.tx3,fontSize:14}}>Alles in Ordnung ✓</div>}
-      </div>}
-
-      {/* ZENTRALLAGER */}
-      {view==="zentrallager"&&<div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}><div style={{fontFamily:"var(--ff)",fontSize:24,fontWeight:800}}>Zentrallager</div>{mode==="admin"&&<Btn v="pri" onClick={()=>setModal({t:"zl-add"})}>+ Medikament</Btn>}</div>
-        {data.zl.length?<Table headers={["Name","Dosierung","Einheit","Bestand","Mindest.","Verfall","Status",...(mode==="admin"?["Aktionen"]:[])]} rows={data.zl.map(z=>[
-          <span style={{fontWeight:700}}>{z.name}</span>,<span style={{color:C.tx2}}>{z.dosage||"—"}</span>,<span style={{color:C.tx2}}>{z.unit||"—"}</span>,
-          z.quantity||0,<span style={{color:C.tx3}}>{z.minStock||"—"}</span>,<ExpiryBadge ym={z.expiry}/>,
-          z.minStock&&(z.quantity||0)<z.minStock?<Badge type="warning">Niedrig</Badge>:"",
-          ...(mode==="admin"?[<div style={{display:"flex",gap:6}}><Btn sm v="sec" onClick={()=>setModal({t:"zl-edit",d:z})}>Bearbeiten</Btn><Btn sm v="dan" onClick={()=>setModal({t:"confirm",msg:"Medikament löschen?",fn:()=>ops.delZl(z.id)})}>Löschen</Btn></div>]:[])
-        ])}/>:<div style={{textAlign:"center",padding:"3rem",color:C.tx3}}>Noch keine Einträge</div>}
-      </div>}
-
-      {/* AMPULLARIEN */}
-      {view==="ampullarien"&&<div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}><div style={{fontFamily:"var(--ff)",fontSize:24,fontWeight:800}}>Ampullarien</div>{mode==="admin"&&<Btn v="pri" onClick={()=>setModal({t:"amp-add"})}>+ Ampullarium</Btn>}</div>
-        {!data.amps.length?<div style={{textAlign:"center",padding:"3rem",color:C.tx3}}>Noch keine Ampullarien</div>:
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(230px,1fr))",gap:14}}>
-          {data.amps.map(a=>{
-            const iss=a.meds.filter(m=>(m.current||0)<(m.required||0)||expiryStatus(m.expiry)==="danger"||expiryStatus(m.expiry)==="warning").length;
-            const crit=a.meds.filter(m=>(m.current||0)===0||expiryStatus(m.expiry)==="danger").length;
-            return<div key={a.id} onClick={()=>{setSelAmp(a.id);setView("amp-detail");}} style={{background:C.surf,border:`1px solid ${C.bdr}`,borderRadius:C.r,padding:20,cursor:"pointer"}}>
-              <div style={{fontFamily:"var(--ff)",fontSize:17,fontWeight:800,marginBottom:3}}>{a.name}</div>
-              <div style={{fontSize:11,color:C.tx2,marginBottom:14}}>{a.description||"—"}</div>
-              <div style={{display:"flex",gap:18,marginBottom:mode==="admin"?14:0}}>
-                <div><div style={{fontFamily:"var(--ff)",fontSize:26,fontWeight:800}}>{a.meds.length}</div><div style={{fontSize:10,color:C.tx3}}>Medikamente</div></div>
-                {iss>0&&<div><div style={{fontFamily:"var(--ff)",fontSize:26,fontWeight:800,color:crit>0?C.red:C.yel}}>{iss}</div><div style={{fontSize:10,color:C.tx3}}>Hinweise</div></div>}
-              </div>
-              {mode==="admin"&&<div style={{display:"flex",gap:6}} onClick={e=>e.stopPropagation()}><Btn sm v="sec" onClick={()=>setModal({t:"amp-edit",d:a})}>Bearbeiten</Btn><Btn sm v="dan" onClick={()=>setModal({t:"confirm",msg:"Ampullarium löschen?",fn:()=>ops.delAmp(a.id)})}>Löschen</Btn></div>}
+        <div style={{fontFamily:"var(--ff)",fontSize:24,fontWeight:800,marginBottom:18}}>Uebersicht</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:14,marginBottom:24}}>
+          {[
+            {lbl:"Ampullarien",val:data.amps.length,t:null},
+            {lbl:"Zentrallager",val:data.zl.length+" Artikel",t:null},
+            {lbl:"Kritisch",val:warnings.filter(function(w){return w.t==="danger";}).length,t:warnings.filter(function(w){return w.t==="danger";}).length>0?"danger":null},
+            {lbl:"Warnungen",val:warnings.filter(function(w){return w.t==="warning";}).length,t:warnings.filter(function(w){return w.t==="warning";}).length>0?"warning":null},
+          ].map(function(s){
+            return <div key={s.lbl} style={{background:S.surf,border:"1px solid "+S.bdr,borderRadius:"var(--r)",padding:18}}>
+              <div style={{fontSize:11,color:S.t2,textTransform:"uppercase",letterSpacing:1.2,marginBottom:8}}>{s.lbl}</div>
+              <div style={{fontFamily:"var(--ff)",fontSize:34,fontWeight:800,color:s.t?("var(--"+(s.t==="danger"?"red":"yel")+")"):S.tx}}>{s.val}</div>
             </div>;
           })}
-        </div>}
-      </div>}
-
-      {/* AMPULLARIUM DETAIL */}
-      {view==="amp-detail"&&amp&&<div>
-        <button onClick={()=>{setView("ampullarien");setSelAmp(null);}} style={{background:"none",border:"none",cursor:"pointer",color:C.tx2,fontSize:12,marginBottom:14,padding:0,fontFamily:"var(--fm)"}}>← Zurück</button>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:18,flexWrap:"wrap",gap:10}}>
-          <div><div style={{fontFamily:"var(--ff)",fontSize:24,fontWeight:800}}>{amp.name}</div><div style={{fontSize:12,color:C.tx2}}>{amp.description||"—"}</div></div>
-          {mode==="admin"&&<div style={{display:"flex",gap:8}}><Btn v="grn" onClick={()=>setModal({t:"refill",aid:amp.id})}>⇅ Auffüllen</Btn><Btn v="pri" onClick={()=>setModal({t:"amp-med-add",aid:amp.id})}>+ Medikament</Btn></div>}
         </div>
-        {amp.meds.length?<Table headers={["Name","Dosierung","Einheit","Ist/Soll","Verfall",...(mode==="admin"?["Aktionen"]:[])]} rows={amp.meds.map(m=>[
-          <span style={{fontWeight:700}}>{m.name}</span>,<span style={{color:C.tx2}}>{m.dosage||"—"}</span>,<span style={{color:C.tx2}}>{m.unit||"—"}</span>,
-          <StockBadge cur={m.current||0} req={m.required||0}/>,<ExpiryBadge ym={m.expiry}/>,
-          ...(mode==="admin"?[<div style={{display:"flex",gap:6}}><Btn sm v="sec" onClick={()=>setModal({t:"amp-med-edit",aid:amp.id,med:m})}>Bearbeiten</Btn><Btn sm v="dan" onClick={()=>setModal({t:"confirm",msg:"Medikament entfernen?",fn:()=>ops.delMed(amp.id,m.id)})}>Entfernen</Btn></div>]:[])
-        ])}/>:<div style={{textAlign:"center",padding:"3rem",color:C.tx3}}>Keine Medikamente</div>}
+        {warnings.length>0?<div style={{background:S.surf,border:"1px solid "+S.bdr,borderRadius:"var(--r)",overflow:"hidden"}}>
+          <div style={{padding:"12px 18px",borderBottom:"1px solid "+S.bdr,fontSize:13,fontWeight:700}}>Hinweise</div>
+          {warnings.map(function(w,i){
+            return <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 18px",borderBottom:i<warnings.length-1?"1px solid "+S.bdr:"none",background:w.t==="danger"?S.rD:S.yD}}>
+              <span style={{color:w.t==="danger"?S.red:S.yel,fontSize:8}}>o</span>
+              <span style={{fontSize:13,color:w.t==="danger"?S.red:S.yel}}>{w.msg}</span>
+            </div>;
+          })}
+        </div>:<div style={{textAlign:"center",padding:"3rem",color:S.t3}}>Alles in Ordnung</div>}
       </div>}
 
-      {/* SETTINGS */}
+      {view==="zentrallager"&&<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+          <div style={{fontFamily:"var(--ff)",fontSize:24,fontWeight:800}}>Zentrallager</div>
+          {mode==="admin"&&<Btn v="pri" onClick={function(){setModal({t:"zl-add"});}}>+ Medikament</Btn>}
+        </div>
+        {data.zl.length?<div style={{background:S.surf,border:"1px solid "+S.bdr,borderRadius:"var(--r)",overflow:"hidden"}}><div style={{overflowX:"auto"}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+            <thead><tr style={{background:S.s2,borderBottom:"1px solid "+S.bdr}}>
+              {["Name","Dosierung","Einheit","Bestand","Mindest.","Verfall"].concat(mode==="admin"?["Aktionen"]:[]).map(function(h){
+                return <th key={h} style={{padding:"11px 16px",textAlign:"left",fontSize:11,color:S.t2,textTransform:"uppercase",letterSpacing:1.2,whiteSpace:"nowrap"}}>{h}</th>;
+              })}
+            </tr></thead>
+            <tbody>
+              {data.zl.map(function(z,i){
+                return <tr key={z.id} style={{borderBottom:i<data.zl.length-1?"1px solid "+S.bdr:"none"}}>
+                  <td style={{padding:"11px 16px",fontWeight:700}}>{z.name}</td>
+                  <td style={{padding:"11px 16px",color:S.t2}}>{z.dosage||"--"}</td>
+                  <td style={{padding:"11px 16px",color:S.t2}}>{z.unit||"--"}</td>
+                  <td style={{padding:"11px 16px"}}>{z.quantity||0}</td>
+                  <td style={{padding:"11px 16px",color:S.t3}}>{z.minStock||"--"}</td>
+                  <td style={{padding:"11px 16px"}}><ExpiryBadge ym={z.expiry}/></td>
+                  {mode==="admin"&&<td style={{padding:"11px 16px"}}>
+                    <div style={{display:"flex",gap:6}}>
+                      <Btn sm={true} v="sec" onClick={function(){setModal({t:"zl-edit",d:z});}}>Bearbeiten</Btn>
+                      <Btn sm={true} v="dan" onClick={function(){setModal({t:"confirm",msg:"Loeschen?",fn:function(){delZl(z.id);}});}}>Loeschen</Btn>
+                    </div>
+                  </td>}
+                </tr>;
+              })}
+            </tbody>
+          </table>
+        </div></div>:<div style={{textAlign:"center",padding:"3rem",color:S.t3}}>Noch keine Eintraege</div>}
+      </div>}
+
+      {view==="ampullarien"&&<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+          <div style={{fontFamily:"var(--ff)",fontSize:24,fontWeight:800}}>Ampullarien</div>
+          {mode==="admin"&&<Btn v="pri" onClick={function(){setModal({t:"amp-add"});}}>+ Ampullarium</Btn>}
+        </div>
+        {!data.amps.length?<div style={{textAlign:"center",padding:"3rem",color:S.t3}}>Noch keine Ampullarien</div>:
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:14}}>
+            {data.amps.map(function(a){
+              var iss=a.meds.filter(function(m){return (m.current||0)<(m.required||0)||expiryStatus(m.expiry)==="danger"||expiryStatus(m.expiry)==="warning";}).length;
+              var crit=a.meds.filter(function(m){return (m.current||0)===0||expiryStatus(m.expiry)==="danger";}).length;
+              return <div key={a.id} onClick={function(){setSelAmp(a.id);setView("amp-detail");}}
+                style={{background:S.surf,border:"1px solid "+S.bdr,borderRadius:"var(--r)",padding:20,cursor:"pointer"}}>
+                <div style={{fontFamily:"var(--ff)",fontSize:17,fontWeight:800,marginBottom:3}}>{a.name}</div>
+                <div style={{fontSize:11,color:S.t2,marginBottom:14}}>{a.description||"--"}</div>
+                <div style={{display:"flex",gap:18,marginBottom:mode==="admin"?14:0}}>
+                  <div><div style={{fontFamily:"var(--ff)",fontSize:26,fontWeight:800}}>{a.meds.length}</div><div style={{fontSize:10,color:S.t3}}>Medikamente</div></div>
+                  {iss>0&&<div><div style={{fontFamily:"var(--ff)",fontSize:26,fontWeight:800,color:crit>0?S.red:S.yel}}>{iss}</div><div style={{fontSize:10,color:S.t3}}>Hinweise</div></div>}
+                </div>
+                {mode==="admin"&&<div style={{display:"flex",gap:6}} onClick={function(e){e.stopPropagation();}}>
+                  <Btn sm={true} v="sec" onClick={function(){setModal({t:"amp-edit",d:a});}}>Bearbeiten</Btn>
+                  <Btn sm={true} v="dan" onClick={function(){setModal({t:"confirm",msg:"Ampullarium loeschen?",fn:function(){delAmp(a.id);}});}}>Loeschen</Btn>
+                </div>}
+              </div>;
+            })}
+          </div>}
+      </div>}
+
+      {view==="amp-detail"&&amp&&<div>
+        <button onClick={function(){setView("ampullarien");setSelAmp(null);}} style={{background:"none",border:"none",cursor:"pointer",color:S.t2,fontSize:12,marginBottom:14,padding:0,fontFamily:"var(--fm)"}}>
+          &lt;- Zurueck
+        </button>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:18,flexWrap:"wrap",gap:10}}>
+          <div>
+            <div style={{fontFamily:"var(--ff)",fontSize:24,fontWeight:800}}>{amp.name}</div>
+            <div style={{fontSize:12,color:S.t2}}>{amp.description||"--"}</div>
+          </div>
+          {mode==="admin"&&<div style={{display:"flex",gap:8}}>
+            <Btn v="grn" onClick={function(){setModal({t:"refill",aid:amp.id});}}>Auffuellen</Btn>
+            <Btn v="pri" onClick={function(){setModal({t:"amp-med-add",aid:amp.id});}}>+ Medikament</Btn>
+          </div>}
+        </div>
+        {amp.meds.length?<div style={{background:S.surf,border:"1px solid "+S.bdr,borderRadius:"var(--r)",overflow:"hidden"}}><div style={{overflowX:"auto"}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+            <thead><tr style={{background:S.s2,borderBottom:"1px solid "+S.bdr}}>
+              {["Name","Dosierung","Einheit","Ist/Soll","Verfall"].concat(mode==="admin"?["Aktionen"]:[]).map(function(h){
+                return <th key={h} style={{padding:"11px 16px",textAlign:"left",fontSize:11,color:S.t2,textTransform:"uppercase",letterSpacing:1.2,whiteSpace:"nowrap"}}>{h}</th>;
+              })}
+            </tr></thead>
+            <tbody>
+              {amp.meds.map(function(m,i){
+                return <tr key={m.id} style={{borderBottom:i<amp.meds.length-1?"1px solid "+S.bdr:"none"}}>
+                  <td style={{padding:"11px 16px",fontWeight:700}}>{m.name}</td>
+                  <td style={{padding:"11px 16px",color:S.t2}}>{m.dosage||"--"}</td>
+                  <td style={{padding:"11px 16px",color:S.t2}}>{m.unit||"--"}</td>
+                  <td style={{padding:"11px 16px"}}><StockBadge cur={m.current||0} req={m.required||0}/></td>
+                  <td style={{padding:"11px 16px"}}><ExpiryBadge ym={m.expiry}/></td>
+                  {mode==="admin"&&<td style={{padding:"11px 16px"}}>
+                    <div style={{display:"flex",gap:6}}>
+                      <Btn sm={true} v="sec" onClick={function(){setModal({t:"amp-med-edit",aid:amp.id,med:m});}}>Bearbeiten</Btn>
+                      <Btn sm={true} v="dan" onClick={function(){setModal({t:"confirm",msg:"Entfernen?",fn:function(){delMed(amp.id,m.id);}});}}>Entfernen</Btn>
+                    </div>
+                  </td>}
+                </tr>;
+              })}
+            </tbody>
+          </table>
+        </div></div>:<div style={{textAlign:"center",padding:"3rem",color:S.t3}}>Keine Medikamente</div>}
+      </div>}
+
       {view==="settings"&&mode==="admin"&&<div style={{maxWidth:400}}>
         <div style={{fontFamily:"var(--ff)",fontSize:24,fontWeight:800,marginBottom:18}}>Einstellungen</div>
-        <div style={{background:C.surf,border:`1px solid ${C.bdr}`,borderRadius:C.r,padding:22}}>
-          <div style={{fontSize:14,fontWeight:700,marginBottom:16}}>Passwörter ändern</div><PwForm onSave={ops.changePw}/>
+        <div style={{background:S.surf,border:"1px solid "+S.bdr,borderRadius:"var(--r)",padding:22}}>
+          <div style={{fontSize:14,fontWeight:700,marginBottom:16}}>Passwoerter aendern</div>
+          <PwForm onSave={changePw}/>
         </div>
       </div>}
     </main>
 
-    {/* MODALS */}
-    {modal?.t==="zl-add"&&<Modal title="Medikament hinzufügen" onClose={()=>setModal(null)}><ZlForm onSave={ops.addZl} onCancel={()=>setModal(null)}/></Modal>}
-    {modal?.t==="zl-edit"&&<Modal title="Medikament bearbeiten" onClose={()=>setModal(null)}><ZlForm init={modal.d} onSave={i=>ops.editZl(modal.d.id,i)} onCancel={()=>setModal(null)}/></Modal>}
-    {modal?.t==="amp-add"&&<Modal title="Ampullarium hinzufügen" onClose={()=>setModal(null)} w={380}><AmpForm onSave={ops.addAmp} onCancel={()=>setModal(null)}/></Modal>}
-    {modal?.t==="amp-edit"&&<Modal title="Ampullarium bearbeiten" onClose={()=>setModal(null)} w={380}><AmpForm init={modal.d} onSave={a=>ops.editAmp(modal.d.id,a)} onCancel={()=>setModal(null)}/></Modal>}
-    {modal?.t==="amp-med-add"&&<Modal title="Medikament hinzufügen" onClose={()=>setModal(null)}><AmpMedForm zl={data.zl} onSave={m=>ops.addMed(modal.aid,m)} onCancel={()=>setModal(null)}/></Modal>}
-    {modal?.t==="amp-med-edit"&&<Modal title="Medikament bearbeiten" onClose={()=>setModal(null)}><AmpMedForm zl={data.zl} init={modal.med} onSave={m=>ops.editMed(modal.aid,modal.med.id,m)} onCancel={()=>setModal(null)}/></Modal>}
-    {modal?.t==="refill"&&<Modal title="Aus Zentrallager auffüllen" onClose={()=>setModal(null)} w={520}><RefillForm amp={data.amps.find(a=>a.id===modal.aid)} zl={data.zl} onSave={r=>ops.refill(modal.aid,r)} onCancel={()=>setModal(null)}/></Modal>}
-    {modal?.t==="confirm"&&<Modal title="Bestätigen" onClose={()=>setModal(null)} w={340}>
-      <p style={{fontSize:13,color:C.tx2,marginBottom:16,lineHeight:1.6}}>{modal.msg}</p>
-      <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}><Btn v="gho" onClick={()=>setModal(null)}>Abbrechen</Btn><Btn v="dan" onClick={modal.fn}>Löschen</Btn></div>
+    {modal&&modal.t==="zl-add"&&<Modal title="Medikament hinzufuegen" onClose={function(){setModal(null);}}><ZlForm onSave={addZl} onCancel={function(){setModal(null);}}/></Modal>}
+    {modal&&modal.t==="zl-edit"&&<Modal title="Medikament bearbeiten" onClose={function(){setModal(null);}}><ZlForm init={modal.d} onSave={function(i){editZl(modal.d.id,i);}} onCancel={function(){setModal(null);}}/></Modal>}
+    {modal&&modal.t==="amp-add"&&<Modal title="Ampullarium hinzufuegen" onClose={function(){setModal(null);}} w={380}><AmpForm onSave={addAmp} onCancel={function(){setModal(null);}}/></Modal>}
+    {modal&&modal.t==="amp-edit"&&<Modal title="Ampullarium bearbeiten" onClose={function(){setModal(null);}} w={380}><AmpForm init={modal.d} onSave={function(a){editAmp(modal.d.id,a);}} onCancel={function(){setModal(null);}}/></Modal>}
+    {modal&&modal.t==="amp-med-add"&&<Modal title="Medikament hinzufuegen" onClose={function(){setModal(null);}}><AmpMedForm zl={data.zl} onSave={function(m){addMed(modal.aid,m);}} onCancel={function(){setModal(null);}}/></Modal>}
+    {modal&&modal.t==="amp-med-edit"&&<Modal title="Medikament bearbeiten" onClose={function(){setModal(null);}}><AmpMedForm zl={data.zl} init={modal.med} onSave={function(m){editMed(modal.aid,modal.med.id,m);}} onCancel={function(){setModal(null);}}/></Modal>}
+    {modal&&modal.t==="refill"&&<Modal title="Auffuellen" onClose={function(){setModal(null);}} w={520}><RefillForm amp={data.amps.find(function(a){return a.id===modal.aid;})} zl={data.zl} onSave={function(r){refill(modal.aid,r);}} onCancel={function(){setModal(null);}}/></Modal>}
+    {modal&&modal.t==="confirm"&&<Modal title="Bestaetigen" onClose={function(){setModal(null);}} w={340}>
+      <p style={{fontSize:13,color:S.t2,marginBottom:16,lineHeight:1.6}}>{modal.msg}</p>
+      <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+        <Btn v="gho" onClick={function(){setModal(null);}}>Abbrechen</Btn>
+        <Btn v="dan" onClick={modal.fn}>Loeschen</Btn>
+      </div>
     </Modal>}
   </div>;
 }
+
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
