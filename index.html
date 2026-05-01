@@ -125,8 +125,11 @@ function hp(s){ try{ return btoa(unescape(encodeURIComponent(s))); }catch(x){ re
 function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
 
 function loadData(){
-  return fetch(DB_URL)
+  var timeout = new Promise(function(resolve){ setTimeout(function(){ resolve(null); }, 5000); });
+  var request = fetch(DB_URL)
     .then(function(r){ return r.ok?r.json():null; })
+    .catch(function(){ return null; });
+  return Promise.race([request, timeout])
     .then(function(d){ return (d&&d.vp)?d:DEFAULT; })
     .catch(function(){ return DEFAULT; });
 }
@@ -734,6 +737,10 @@ function renderLogin(){
 // ─── INIT ───
 loadData().then(function(d){
   state.data=d;
+  document.getElementById("loading").style.display="none";
+  renderLogin();
+}).catch(function(){
+  state.data=DEFAULT;
   document.getElementById("loading").style.display="none";
   renderLogin();
 });
