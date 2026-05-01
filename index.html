@@ -7,36 +7,61 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{min-height:100vh;background:#0e1117;color:#e8eaf0;font-family:'Courier New',monospace;font-size:14px}
-input,select,button{font-family:'Courier New',monospace}
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-thumb{background:#2c3650;border-radius:3px}
-.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;background:#0e1117}
-.login-box{background:#161b27;border:1px solid #2c3650;border-radius:10px;padding:40px;width:100%;max-width:400px}
-.login-title{font-size:24px;font-weight:800;margin-bottom:4px}
-.login-sub{font-size:12px;color:#8892a4;margin-bottom:24px}
-.info-box{background:rgba(74,158,255,.12);border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#4a9eff;line-height:1.6}
-.err-box{background:rgba(224,62,64,.14);border-radius:6px;padding:9px 13px;margin-bottom:14px;font-size:12px;color:#e03e40}
+input,select,button,textarea{font-family:inherit;font-size:14px}
+a{color:#4a9eff}
+
+/* LAYOUT */
+.hidden{display:none!important}
 .app{display:flex;min-height:100vh}
-.sidebar{width:200px;min-height:100vh;background:#161b27;border-right:1px solid #2c3650;display:flex;flex-direction:column;flex-shrink:0}
+.sidebar{width:200px;min-height:100vh;background:#161b27;border-right:1px solid #2c3650;display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh}
+.main{flex:1;padding:24px;overflow-x:auto}
+
+/* SIDEBAR */
 .sb-head{padding:20px 16px;border-bottom:1px solid #2c3650}
-.sb-title{font-size:18px;font-weight:800}
+.sb-title{font-size:18px;font-weight:800;margin-bottom:2px}
 .sb-sub{font-size:9px;color:#8892a4;letter-spacing:2px;text-transform:uppercase;margin-top:4px}
-.sb-nav{flex:1;padding:12px 8px}
+.sb-nav{flex:1;padding:12px 8px;overflow-y:auto}
 .sb-foot{padding:14px 8px;border-top:1px solid #2c3650}
-.main{flex:1;padding:24px;overflow-x:auto;background:#0e1117}
-.page-title{font-size:24px;font-weight:800;margin-bottom:18px}
+.nav-btn{display:block;width:100%;padding:10px 12px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-family:inherit;text-align:left;margin-bottom:2px;background:transparent;color:#8892a4;font-weight:400;transition:all .15s}
+.nav-btn:hover{background:#1d2436;color:#e8eaf0}
+.nav-btn.active{background:rgba(224,62,64,.14);color:#e03e40;font-weight:700}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-danger{background:rgba(224,62,64,.14);color:#e03e40}
+.badge-warning{background:rgba(244,180,0,.12);color:#f4b400}
+.badge-success{background:rgba(46,196,182,.12);color:#2ec4b6}
+.badge-info{background:rgba(74,158,255,.12);color:#4a9eff}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-family:inherit;font-weight:700;white-space:nowrap;transition:opacity .15s}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-pri{background:#e03e40;color:#fff}
+.btn-sec{background:#1d2436;color:#e8eaf0;border:1px solid #2c3650}
+.btn-grn{background:rgba(46,196,182,.12);color:#2ec4b6;border:1px solid rgba(46,196,182,.3)}
+.btn-dan{background:rgba(224,62,64,.14);color:#e03e40;border:1px solid rgba(224,62,64,.3)}
+.btn-gho{background:transparent;color:#8892a4;border:1px solid #2c3650}
+.btn-sm{padding:5px 11px;font-size:11px}
+.btn-full{width:100%;justify-content:center}
+
+/* INPUTS */
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:11px;color:#8892a4;margin-bottom:5px;text-transform:uppercase;letter-spacing:1px}
+.form-input{width:100%;padding:10px 12px;border-radius:6px;border:1px solid #2c3650;background:#1d2436;color:#e8eaf0;outline:none}
+.form-input:focus{border-color:#4a9eff}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+
+/* CARDS */
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px}
 .stat-card{background:#161b27;border:1px solid #2c3650;border-radius:10px;padding:18px}
 .stat-lbl{font-size:11px;color:#8892a4;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px}
 .stat-val{font-size:34px;font-weight:800}
 .amp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-.amp-card{background:#161b27;border:1px solid #2c3650;border-radius:10px;padding:20px;cursor:pointer}
+.amp-card{background:#161b27;border:1px solid #2c3650;border-radius:10px;padding:20px;cursor:pointer;transition:border-color .15s}
 .amp-card:hover{border-color:#e03e40}
-.amp-name{font-size:17px;font-weight:800;margin-bottom:3px}
-.amp-desc{font-size:11px;color:#8892a4;margin-bottom:14px}
-.warn-list{background:#161b27;border:1px solid #2c3650;border-radius:10px;overflow:hidden}
-.warn-head{padding:12px 18px;border-bottom:1px solid #2c3650;font-size:13px;font-weight:700}
-.warn-item{display:flex;align-items:center;gap:10px;padding:10px 18px;font-size:13px}
+
+/* TABLE */
 .tbl-wrap{background:#161b27;border:1px solid #2c3650;border-radius:10px;overflow:hidden}
 .tbl-inner{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -44,45 +69,65 @@ thead th{padding:11px 16px;text-align:left;font-size:11px;color:#8892a4;text-tra
 tbody tr{border-bottom:1px solid #2c3650}
 tbody tr:last-child{border-bottom:none}
 td{padding:11px 16px;vertical-align:middle}
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
 .modal-box{background:#161b27;border:1px solid #2c3650;border-radius:10px;padding:24px;width:100%;max-width:480px}
 .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
 .modal-title{font-size:18px;font-weight:800}
-.form-group{margin-bottom:14px}
-.form-label{display:block;font-size:11px;color:#8892a4;margin-bottom:5px;text-transform:uppercase;letter-spacing:1px}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.toast{position:fixed;bottom:22px;right:22px;z-index:9999;padding:10px 18px;border-radius:6px;font-size:13px;font-weight:700}
-.back-btn{background:none;border:none;cursor:pointer;color:#8892a4;font-size:12px;margin-bottom:14px;padding:0;font-family:inherit}
-.detail-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;flex-wrap:wrap;gap:10px}
-.btn-row{display:flex;gap:8px;flex-wrap:wrap}
-.nav-btn{display:flex;align-items:center;width:100%;padding:10px 12px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-family:inherit;text-align:left;margin-bottom:2px}
+.modal-close{background:none;border:none;cursor:pointer;font-size:20px;color:#8892a4;padding:0 4px;line-height:1}
+
+/* MISC */
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.page-title{font-size:24px;font-weight:800}
+.warn-list{background:#161b27;border:1px solid #2c3650;border-radius:10px;overflow:hidden;margin-top:0}
+.warn-head{padding:12px 18px;border-bottom:1px solid #2c3650;font-size:13px;font-weight:700}
+.warn-item{display:flex;align-items:center;gap:10px;padding:10px 18px;font-size:13px}
+.empty{text-align:center;padding:3rem;color:#4a5568;font-size:13px}
+.toast{position:fixed;bottom:22px;right:22px;z-index:9999;padding:10px 18px;border-radius:6px;font-size:13px;font-weight:700;pointer-events:none}
+.toast-ok{background:rgba(46,196,182,.15);color:#2ec4b6;border:1px solid rgba(46,196,182,.3)}
+.toast-err{background:rgba(224,62,64,.15);color:#e03e40;border:1px solid rgba(224,62,64,.3)}
 .saving{font-size:11px;color:#4a5568;text-align:center;margin-bottom:8px}
-.empty{text-align:center;padding:3rem;color:#4a5568}
+.info-box{background:rgba(74,158,255,.12);border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#4a9eff;line-height:1.6}
+.err-box{background:rgba(224,62,64,.14);border-radius:6px;padding:9px 13px;margin-bottom:14px;font-size:12px;color:#e03e40}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem}
+.login-box{background:#161b27;border:1px solid #2c3650;border-radius:10px;padding:40px;width:100%;max-width:400px}
+.login-title{font-size:24px;font-weight:800;margin-bottom:4px}
+.login-sub{font-size:12px;color:#8892a4;margin-bottom:24px}
+.back-btn{background:none;border:none;cursor:pointer;color:#8892a4;font-size:12px;margin-bottom:14px;padding:0;font-family:inherit}
 .hint-row{display:flex;gap:18px;margin-bottom:14px}
 .hint-num{font-size:26px;font-weight:800}
 .hint-lbl{font-size:10px;color:#4a5568}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.settings-card{background:#161b27;border:1px solid #2c3650;border-radius:10px;padding:22px;max-width:400px}
+.settings-subtitle{font-size:14px;font-weight:700;margin-bottom:16px}
 </style>
 </head>
 <body>
-<div id="root"></div>
-<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+
+<div id="loading" style="display:flex;align-items:center;justify-content:center;min-height:100vh;color:#8892a4;font-size:13px">Lade Daten...</div>
+<div id="login" class="hidden login-wrap"></div>
+<div id="app" class="hidden app"></div>
+<div id="modal-container"></div>
+<div id="toast" class="hidden toast"></div>
+
 <script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
 var FIREBASE_URL = "https://brked-medis-default-rtdb.europe-west1.firebasedatabase.app";
 var DB_URL = FIREBASE_URL + "/ampullarium.json";
+// ─────────────────────────────────────────────────────────────────────────────
+
 var DEFAULT = { vp: btoa("rettung"), ap: btoa("admin2025"), zl: [], amps: [] };
+var state = { data: null, mode: null, view: "dashboard", selAmp: null, saving: false };
 
-var e = React.createElement;
-var useState = React.useState;
-var useEffect = React.useEffect;
-
-function genId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+// ─── DATA ───
 function hp(s){ try{ return btoa(unescape(encodeURIComponent(s))); }catch(x){ return btoa(s); } }
+function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
 
 function loadData(){
   return fetch(DB_URL)
-    .then(function(r){ return r.ok ? r.json() : null; })
-    .then(function(d){ return (d && d.vp) ? d : DEFAULT; })
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(d){ return (d&&d.vp)?d:DEFAULT; })
     .catch(function(){ return DEFAULT; });
 }
 function saveData(d){
@@ -90,489 +135,608 @@ function saveData(d){
     .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); });
 }
 
+// ─── DOM HELPERS ───
+function el(tag,attrs,children){
+  var node=document.createElement(tag);
+  if(attrs) Object.keys(attrs).forEach(function(k){
+    if(k==="class") node.className=attrs[k];
+    else if(k.startsWith("on")) node.addEventListener(k.slice(2).toLowerCase(),attrs[k]);
+    else if(k==="style"&&typeof attrs[k]==="object") Object.assign(node.style,attrs[k]);
+    else node.setAttribute(k,attrs[k]);
+  });
+  if(children) [].concat(children).forEach(function(c){
+    if(c==null||c===false) return;
+    node.appendChild(typeof c==="string"?document.createTextNode(c):c);
+  });
+  return node;
+}
+function setHTML(container,nodes){
+  container.innerHTML="";
+  [].concat(nodes).forEach(function(n){ if(n) container.appendChild(n); });
+}
+
+// ─── UTILS ───
 function expiryStatus(ym){
   if(!ym) return null;
-  var diff = Math.floor((new Date(ym+"-01")-new Date())/864e5);
+  var diff=Math.floor((new Date(ym+"-01")-new Date())/864e5);
   return diff<0?"danger":diff<30?"danger":diff<90?"warning":"success";
 }
-
-// ─── UI HELPERS ───
-function badge(type, text){
-  var colors = {
-    danger:{bg:"rgba(224,62,64,.14)",c:"#e03e40"},
-    warning:{bg:"rgba(244,180,0,.12)",c:"#f4b400"},
-    success:{bg:"rgba(46,196,182,.12)",c:"#2ec4b6"},
-    info:{bg:"rgba(74,158,255,.12)",c:"#4a9eff"}
-  };
-  var s = colors[type]||colors.info;
-  return e("span",{style:{background:s.bg,color:s.c,padding:"3px 9px",borderRadius:100,fontSize:11,fontWeight:700,whiteSpace:"nowrap"}},text);
+function expiryLabel(ym){
+  if(!ym) return "--";
+  var diff=Math.floor((new Date(ym+"-01")-new Date())/864e5);
+  return diff<0?"Abgelaufen":diff<30?(diff+"d"):ym;
 }
 
+function badge(type,text){
+  return el("span",{"class":"badge badge-"+(type||"info")},[text]);
+}
 function expiryBadge(ym){
-  if(!ym) return e("span",{style:{color:"#4a5568"}},"--");
-  var diff = Math.floor((new Date(ym+"-01")-new Date())/864e5);
-  var lbl = diff<0?"Abgelaufen":diff<30?(diff+"d"):ym;
-  return badge(expiryStatus(ym)||"success", lbl);
+  if(!ym) return el("span",{style:{color:"#4a5568"}},["--"]);
+  return badge(expiryStatus(ym)||"success",expiryLabel(ym));
 }
-
 function stockBadge(cur,req){
   var c=cur||0,r=req||0;
   var t=c===0?"danger":(r>0&&c/r<0.5)?"warning":"success";
-  return badge(t, c+"/"+r);
+  return badge(t,c+"/"+r);
 }
 
-function btn(text, onClick, opts){
-  opts = opts||{};
-  var v = opts.v||"sec";
-  var styles = {
-    pri:{background:"#e03e40",color:"#fff",border:"none"},
-    sec:{background:"#1d2436",color:"#e8eaf0",border:"1px solid #2c3650"},
-    grn:{background:"rgba(46,196,182,.12)",color:"#2ec4b6",border:"1px solid rgba(46,196,182,.3)"},
-    dan:{background:"rgba(224,62,64,.14)",color:"#e03e40",border:"1px solid rgba(224,62,64,.3)"},
-    gho:{background:"transparent",color:"#8892a4",border:"1px solid #2c3650"},
-  };
-  var s = styles[v]||styles.sec;
-  return e("button",{
-    onClick:onClick, disabled:opts.disabled||false,
-    style:Object.assign({display:"inline-flex",alignItems:"center",gap:6,fontFamily:"inherit",fontWeight:700,
-      borderRadius:"6px",cursor:opts.disabled?"not-allowed":"pointer",whiteSpace:"nowrap",
-      padding:opts.sm?"5px 11px":"9px 16px",fontSize:opts.sm?11:13,opacity:opts.disabled?0.45:1,
-      width:opts.full?"100%":"auto",justifyContent:opts.full?"center":"flex-start"},s)
-  }, text);
+function btn(text,onClick,classes){
+  var b=el("button",{"class":"btn "+(classes||"btn-sec")},[text]);
+  b.addEventListener("click",onClick);
+  return b;
 }
 
-function inp(label, value, onChange, type, placeholder){
-  return e("div",{className:"form-group"},
-    label && e("label",{className:"form-label"},label),
-    e("input",{
-      type:type||"text", value:value, placeholder:placeholder||"",
-      onChange:function(ev){onChange(ev.target.value);},
-      style:{width:"100%",padding:"10px 12px",fontSize:13,borderRadius:"6px",border:"1px solid #2c3650",background:"#1d2436",color:"#e8eaf0",outline:"none"}
-    })
-  );
+function showToast(msg,type){
+  var t=document.getElementById("toast");
+  t.className="toast toast-"+(type||"ok");
+  t.textContent=msg;
+  t.classList.remove("hidden");
+  setTimeout(function(){t.classList.add("hidden");},3000);
 }
 
-function selct(label, value, onChange, options){
-  return e("div",{className:"form-group"},
-    label && e("label",{className:"form-label"},label),
-    e("select",{value:value, onChange:function(ev){onChange(ev.target.value);},
-      style:{width:"100%",padding:"10px 12px",fontSize:13,borderRadius:"6px",border:"1px solid #2c3650",background:"#1d2436",color:"#e8eaf0",outline:"none",appearance:"none"}},
-      options.map(function(o){ return e("option",{key:o.v,value:o.v},o.l); })
-    )
-  );
+function setSaving(v){
+  state.saving=v;
+  var s=document.getElementById("saving-indicator");
+  if(s) s.style.display=v?"block":"none";
 }
 
-function Modal(props){
-  return e("div",{className:"modal-bg", onClick:function(ev){if(ev.target===ev.currentTarget)props.onClose();}},
-    e("div",{className:"modal-box",style:{maxWidth:props.w||480}},
-      e("div",{className:"modal-head"},
-        e("span",{className:"modal-title"},props.title),
-        e("button",{onClick:props.onClose,style:{background:"none",border:"none",cursor:"pointer",fontSize:18,color:"#8892a4",padding:"2px 6px"}},"X")
-      ),
-      props.children
-    )
-  );
+function doSave(nd){
+  setSaving(true);
+  saveData(nd).then(function(){
+    state.data=nd;
+    showToast("Gespeichert");
+    setSaving(false);
+    render();
+  }).catch(function(er){
+    showToast("Fehler: "+er.message,"err");
+    setSaving(false);
+  });
+}
+
+// ─── MODAL ───
+function openModal(contentFn,width){
+  var mc=document.getElementById("modal-container");
+  var box=el("div",{"class":"modal-box",style:{maxWidth:(width||480)+"px"}});
+  var bg=el("div",{"class":"modal-bg"},[box]);
+  bg.addEventListener("click",function(ev){ if(ev.target===bg) closeModal(); });
+
+  var head=el("div",{"class":"modal-head"});
+  var closeBtn=el("button",{"class":"modal-close"},["×"]);
+  closeBtn.addEventListener("click",closeModal);
+  head.appendChild(closeBtn);
+  box.appendChild(head);
+
+  var body=el("div");
+  box.appendChild(body);
+
+  contentFn(head,body,closeModal);
+  mc.innerHTML="";
+  mc.appendChild(bg);
+}
+function closeModal(){
+  document.getElementById("modal-container").innerHTML="";
 }
 
 // ─── FORMS ───
-function ZlForm(props){
-  var def={name:"",dosage:"",unit:"Ampulle",quantity:0,minStock:5,expiry:"",notes:""};
-  var s = useState(Object.assign({},def,props.init||{}));
-  var f=s[0], setF=s[1];
-  function u(k,v){setF(function(p){var n=Object.assign({},p);n[k]=v;return n;});}
-  return e("div",null,
-    inp("Name *",f.name,function(v){u("name",v);}),
-    inp("Dosierung (z.B. 1 mg/ml)",f.dosage,function(v){u("dosage",v);}),
-    inp("Einheit",f.unit,function(v){u("unit",v);}),
-    e("div",{className:"form-row"},
-      inp("Bestand",f.quantity,function(v){u("quantity",parseInt(v)||0);},"number"),
-      inp("Mindestbestand",f.minStock,function(v){u("minStock",parseInt(v)||0);},"number")
-    ),
-    inp("Verfall (JJJJ-MM)",f.expiry,function(v){u("expiry",v);},"text","2026-12"),
-    inp("Notizen",f.notes,function(v){u("notes",v);}),
-    e("div",{style:{display:"flex",gap:8,justifyContent:"flex-end",marginTop:4}},
-      btn("Abbrechen",props.onCancel,{v:"gho"}),
-      btn("Speichern",function(){if(f.name)props.onSave(f);},{v:"pri"})
-    )
-  );
+function makeInp(label,value,type){
+  var g=el("div",{"class":"form-group"});
+  if(label) g.appendChild(el("label",{"class":"form-label"},[label]));
+  var i=el("input",{"class":"form-input",type:type||"text",value:value||""});
+  g.appendChild(i);
+  return {group:g,input:i,val:function(){return i.value;}};
+}
+function makeSelct(label,options,value){
+  var g=el("div",{"class":"form-group"});
+  if(label) g.appendChild(el("label",{"class":"form-label"},[label]));
+  var s=el("select",{"class":"form-input"});
+  options.forEach(function(o){
+    var opt=el("option",{value:o.v},[o.l]);
+    if(o.v===value) opt.selected=true;
+    s.appendChild(opt);
+  });
+  g.appendChild(s);
+  return {group:g,select:s,val:function(){return s.value;}};
 }
 
-function AmpForm(props){
-  var s=useState(Object.assign({name:"",description:""},props.init||{}));
-  var f=s[0],setF=s[1];
-  return e("div",null,
-    inp("Name (z.B. RTW 1) *",f.name,function(v){setF(function(p){return Object.assign({},p,{name:v});});}),
-    inp("Beschreibung",f.description,function(v){setF(function(p){return Object.assign({},p,{description:v});});}),
-    e("div",{style:{display:"flex",gap:8,justifyContent:"flex-end",marginTop:4}},
-      btn("Abbrechen",props.onCancel,{v:"gho"}),
-      btn("Speichern",function(){if(f.name)props.onSave(f);},{v:"pri"})
-    )
-  );
+function zlForm(init,onSave){
+  openModal(function(head,body,close){
+    head.insertBefore(el("span",{"class":"modal-title"},[(init?"Medikament bearbeiten":"Medikament hinzufügen")]),head.firstChild);
+    var d=Object.assign({name:"",dosage:"",unit:"Ampulle",quantity:0,minStock:5,expiry:"",notes:""},init||{});
+    var nm=makeInp("Name *",d.name);
+    var dos=makeInp("Dosierung (z.B. 1 mg/ml)",d.dosage);
+    var unit=makeInp("Einheit",d.unit);
+    var row=el("div",{"class":"form-row"});
+    var qty=makeInp("Bestand",d.quantity,"number");
+    var min=makeInp("Mindestbestand",d.minStock,"number");
+    row.appendChild(qty.group); row.appendChild(min.group);
+    var exp=makeInp("Verfall (JJJJ-MM)",d.expiry);
+    exp.input.placeholder="2026-12";
+    var notes=makeInp("Notizen",d.notes);
+    var actions=el("div",{"class":"form-actions"});
+    var cancelBtn=btn("Abbrechen",close,"btn btn-gho");
+    var saveBtn=btn("Speichern",function(){
+      var name=nm.val().trim();
+      if(!name){nm.input.focus();return;}
+      onSave({name:name,dosage:dos.val(),unit:unit.val()||"Ampulle",quantity:parseInt(qty.val())||0,minStock:parseInt(min.val())||0,expiry:exp.val(),notes:notes.val()});
+      close();
+    },"btn btn-pri");
+    actions.appendChild(cancelBtn); actions.appendChild(saveBtn);
+    [nm.group,dos.group,unit.group,row,exp.group,notes.group,actions].forEach(function(n){body.appendChild(n);});
+  });
 }
 
-function AmpMedForm(props){
-  var def={name:"",dosage:"",unit:"Ampulle",required:1,current:0,expiry:""};
-  var s=useState(Object.assign({},def,props.init||{}));
-  var f=s[0],setF=s[1];
-  function u(k,v){setF(function(p){var n=Object.assign({},p);n[k]=v;return n;});}
-  function pick(id){
-    var z=props.zl.find(function(x){return x.id===id;});
-    if(z) setF(function(p){return Object.assign({},p,{name:z.name,dosage:z.dosage,unit:z.unit});});
-  }
-  var zlOpts=[{v:"",l:"-- Auswaehlen --"}].concat(props.zl.map(function(z){return {v:z.id,l:z.name+(z.dosage?" ("+z.dosage+")":"")};}));
-  return e("div",null,
-    props.zl.length>0 && selct("Aus Zentrallager uebernehmen","",pick,zlOpts),
-    inp("Name *",f.name,function(v){u("name",v);}),
-    inp("Dosierung",f.dosage,function(v){u("dosage",v);}),
-    inp("Einheit",f.unit,function(v){u("unit",v);}),
-    e("div",{className:"form-row"},
-      inp("Sollbestand",f.required,function(v){u("required",parseInt(v)||0);},"number"),
-      inp("Istbestand",f.current,function(v){u("current",parseInt(v)||0);},"number")
-    ),
-    inp("Verfall (JJJJ-MM)",f.expiry,function(v){u("expiry",v);},"text","2026-12"),
-    e("div",{style:{display:"flex",gap:8,justifyContent:"flex-end",marginTop:4}},
-      btn("Abbrechen",props.onCancel,{v:"gho"}),
-      btn("Speichern",function(){if(f.name)props.onSave(f);},{v:"pri"})
-    )
-  );
+function ampForm(init,onSave){
+  openModal(function(head,body,close){
+    head.insertBefore(el("span",{"class":"modal-title"},[(init?"Ampullarium bearbeiten":"Ampullarium hinzufügen")]),head.firstChild);
+    var d=Object.assign({name:"",description:""},init||{});
+    var nm=makeInp("Name (z.B. RTW 1) *",d.name);
+    var desc=makeInp("Beschreibung",d.description);
+    var actions=el("div",{"class":"form-actions"});
+    actions.appendChild(btn("Abbrechen",close,"btn btn-gho"));
+    actions.appendChild(btn("Speichern",function(){
+      var name=nm.val().trim();
+      if(!name){nm.input.focus();return;}
+      onSave({name:name,description:desc.val()});
+      close();
+    },"btn btn-pri"));
+    [nm.group,desc.group,actions].forEach(function(n){body.appendChild(n);});
+  },380);
 }
 
-function RefillForm(props){
-  var init=props.amp.meds.map(function(m){return {medId:m.id,medName:m.name,cur:m.current||0,req:m.required||0,zlId:"",qty:0};});
-  var s=useState(init);
-  var rows=s[0],setRows=s[1];
-  function upd(i,k,v){setRows(function(r){return r.map(function(x,j){if(j!==i)return x;var n=Object.assign({},x);n[k]=v;return n;});});}
-  if(!props.amp.meds.length) return e("div",null,
-    e("p",{className:"empty"},"Keine Medikamente"),
-    e("div",{style:{textAlign:"right"}},btn("Schliessen",props.onCancel,{v:"gho"}))
-  );
-  var ok=rows.some(function(r){return r.qty>0&&r.zlId;});
-  var zlOpts=props.zl.map(function(z){return {v:z.id,l:z.name+" ("+( z.quantity||0)+")"}; });
-  return e("div",null,
-    e("p",{style:{fontSize:12,color:"#8892a4",marginBottom:12}},"Quelle und Menge waehlen."),
-    rows.map(function(r,i){
-      return e("div",{key:r.medId,style:{background:"#1d2436",borderRadius:"6px",padding:12,marginBottom:8}},
-        e("div",{style:{fontSize:13,fontWeight:700,marginBottom:7}},r.medName,
-          e("span",{style:{fontWeight:400,fontSize:11,color:"#8892a4",marginLeft:8}},"Ist: "+r.cur+" / Soll: "+r.req)
-        ),
-        e("div",{style:{display:"flex",gap:8}},
-          e("select",{value:r.zlId,onChange:function(ev){upd(i,"zlId",ev.target.value);},
-            style:{flex:3,padding:"7px 9px",fontSize:12,borderRadius:"6px",border:"1px solid #2c3650",background:"#161b27",color:"#e8eaf0"}},
-            e("option",{value:""},"-- Quelle --"),
-            zlOpts.map(function(o){return e("option",{key:o.v,value:o.v},o.l);})
-          ),
-          e("input",{type:"number",min:0,value:r.qty,onChange:function(ev){upd(i,"qty",parseInt(ev.target.value)||0);},placeholder:"Menge",
-            style:{flex:1,padding:"7px 9px",fontSize:12,borderRadius:"6px",border:"1px solid #2c3650",background:"#161b27",color:"#e8eaf0"}})
-        )
-      );
-    }),
-    e("div",{style:{display:"flex",gap:8,justifyContent:"flex-end",marginTop:8}},
-      btn("Abbrechen",props.onCancel,{v:"gho"}),
-      btn("Auffuellen",function(){props.onSave(rows.filter(function(r){return r.qty>0&&r.zlId;}));},{v:"grn",disabled:!ok})
-    )
-  );
-}
-
-function PwForm(props){
-  var s1=useState(""),s2=useState("");
-  var vp=s1[0],setVp=s1[1],ap=s2[0],setAp=s2[1];
-  return e("div",null,
-    inp("Neues Betrachter-Passwort",vp,setVp,"password"),
-    inp("Neues Admin-Passwort",ap,setAp,"password"),
-    btn("Speichern",function(){props.onSave(vp,ap);},{v:"pri",disabled:!vp||!ap})
-  );
-}
-
-// ─── APP ───
-function App(){
-  var s1=useState(true),loading=s1[0],setLoading=s1[1];
-  var s2=useState(null),data=s2[0],setData=s2[1];
-  var s3=useState(null),mode=s3[0],setMode=s3[1];
-  var s4=useState("dashboard"),view=s4[0],setView=s4[1];
-  var s5=useState(null),selAmp=s5[0],setSelAmp=s5[1];
-  var s6=useState(null),modal=s6[0],setModal=s6[1];
-  var s7=useState(""),pw=s7[0],setPw=s7[1];
-  var s8=useState(""),pwErr=s8[0],setPwErr=s8[1];
-  var s9=useState(false),firstTime=s9[0],setFirstTime=s9[1];
-  var s10=useState(false),saving=s10[0],setSaving=s10[1];
-  var s11=useState(null),toast=s11[0],setToast=s11[1];
-
-  useEffect(function(){
-    loadData().then(function(d){
-      setData(d);
-      if(!d.zl||!d.zl.length) setFirstTime(true);
-      setLoading(false);
-    });
-  },[]);
-
-  function showToast(msg,t){
-    setToast({msg:msg,t:t||"ok"});
-    setTimeout(function(){setToast(null);},3000);
-  }
-
-  function doSave(nd){
-    setSaving(true);
-    saveData(nd).then(function(){
-      setData(nd);showToast("Gespeichert");setSaving(false);
-    }).catch(function(er){
-      showToast("Fehler: "+er.message,"err");setSaving(false);
-    });
-  }
-
-  function login(){
-    if(!data)return;
-    if(hp(pw)===data.ap){setMode("admin");setPwErr("");}
-    else if(hp(pw)===data.vp){setMode("viewer");setPwErr("");}
-    else setPwErr("Falsches Passwort");
-  }
-
-  function addZl(item){doSave(Object.assign({},data,{zl:data.zl.concat([Object.assign({},item,{id:genId()})])}));setModal(null);}
-  function editZl(id,item){doSave(Object.assign({},data,{zl:data.zl.map(function(x){return x.id===id?Object.assign({},x,item):x;})}));setModal(null);}
-  function delZl(id){doSave(Object.assign({},data,{zl:data.zl.filter(function(x){return x.id!==id;})}));setModal(null);}
-  function addAmp(a){doSave(Object.assign({},data,{amps:data.amps.concat([Object.assign({},a,{id:genId(),meds:[]})])}));setModal(null);}
-  function editAmp(id,a){doSave(Object.assign({},data,{amps:data.amps.map(function(x){return x.id===id?Object.assign({},x,a):x;})}));setModal(null);}
-  function delAmp(id){doSave(Object.assign({},data,{amps:data.amps.filter(function(x){return x.id!==id;})}));setModal(null);if(selAmp===id){setSelAmp(null);setView("ampullarien");}}
-  function addMed(aid,m){doSave(Object.assign({},data,{amps:data.amps.map(function(a){return a.id===aid?Object.assign({},a,{meds:a.meds.concat([Object.assign({},m,{id:genId()})])}):a;})}));setModal(null);}
-  function editMed(aid,mid,m){doSave(Object.assign({},data,{amps:data.amps.map(function(a){return a.id===aid?Object.assign({},a,{meds:a.meds.map(function(x){return x.id===mid?Object.assign({},x,m):x;})}):a;})}));setModal(null);}
-  function delMed(aid,mid){doSave(Object.assign({},data,{amps:data.amps.map(function(a){return a.id===aid?Object.assign({},a,{meds:a.meds.filter(function(m){return m.id!==mid;})}):a;})}));setModal(null);}
-  function refill(aid,refills){
-    var nd=Object.assign({},data,{zl:data.zl.slice(),amps:data.amps.slice()});
-    refills.forEach(function(r){
-      nd.zl=nd.zl.map(function(z){return z.id===r.zlId?Object.assign({},z,{quantity:Math.max(0,(z.quantity||0)-r.qty)}):z;});
-      nd.amps=nd.amps.map(function(a){return a.id===aid?Object.assign({},a,{meds:a.meds.map(function(m){return m.id===r.medId?Object.assign({},m,{current:(m.current||0)+r.qty}):m;})}):a;});
-    });
-    doSave(nd);setModal(null);showToast("Aufgefuellt");
-  }
-  function changePw(vp,ap){doSave(Object.assign({},data,{vp:hp(vp),ap:hp(ap)}));setModal(null);showToast("Passwoerter geaendert");}
-
-  var warnings=[];
-  if(data){
-    data.zl.forEach(function(z){
-      var st=expiryStatus(z.expiry);
-      if(st==="danger"||st==="warning") warnings.push({t:st,msg:"ZL: "+z.name+" - Verfall "+z.expiry});
-      if(z.minStock&&(z.quantity||0)<z.minStock) warnings.push({t:"warning",msg:"ZL: "+z.name+" - Bestand niedrig"});
-    });
-    data.amps.forEach(function(a){
-      a.meds.forEach(function(m){
-        var st=expiryStatus(m.expiry);
-        if(st==="danger"||st==="warning") warnings.push({t:st,msg:a.name+": "+m.name+" - Verfall "+m.expiry});
-        if((m.current||0)<(m.required||0)) warnings.push({t:(m.current||0)===0?"danger":"warning",msg:a.name+": "+m.name+" - "+(m.current||0)+"/"+(m.required||0)});
+function ampMedForm(init,aid,onSave){
+  openModal(function(head,body,close){
+    head.insertBefore(el("span",{"class":"modal-title"},[(init?"Medikament bearbeiten":"Medikament hinzufügen")]),head.firstChild);
+    var d=Object.assign({name:"",dosage:"",unit:"Ampulle",required:1,current:0,expiry:""},init||{});
+    var zl=state.data.zl;
+    if(zl.length){
+      var zlSel=makeSelct("Aus Zentrallager übernehmen",[{v:"",l:"-- Auswählen --"}].concat(zl.map(function(z){return {v:z.id,l:z.name+(z.dosage?" ("+z.dosage+")":"")};})),"");
+      zlSel.select.addEventListener("change",function(){
+        var z=zl.find(function(x){return x.id===zlSel.val();});
+        if(z){nm.input.value=z.name;dos.input.value=z.dosage||"";unit.input.value=z.unit||"Ampulle";}
       });
-    });
-  }
-
-  // LOADING
-  if(loading) return e("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",color:"#8892a4",fontSize:13}},"Lade Daten...");
-
-  // LOGIN
-  if(!mode) return e("div",{className:"login-wrap"},
-    e("div",{className:"login-box"},
-      e("div",{className:"login-title"},"Ampullarium Manager"),
-      e("div",{className:"login-sub"},"Medikamentenverwaltung"),
-      firstTime && e("div",{className:"info-box"},
-        "Standard-Passwoerter: ",e("strong",null,"rettung")," (Betrachter) / ",e("strong",null,"admin2025")," (Admin)"
-      ),
-      pwErr && e("div",{className:"err-box"},pwErr),
-      inp("Passwort",pw,setPw,"password"),
-      btn("Anmelden",login,{v:"pri",full:true}),
-      e("p",{style:{fontSize:11,color:"#4a5568",textAlign:"center",marginTop:12}},"Betrachter: lesen | Admin: bearbeiten")
-    )
-  );
-
-  var amp=selAmp?data.amps.find(function(a){return a.id===selAmp;}):null;
-  var navItems=[
-    {id:"dashboard",lbl:"Uebersicht"},
-    {id:"zentrallager",lbl:"Zentrallager"},
-    {id:"ampullarien",lbl:"Ampullarien"},
-  ];
-  if(mode==="admin") navItems.push({id:"settings",lbl:"Einstellungen"});
-  var cur=view==="amp-detail"?"ampullarien":view;
-
-  // TABLE HELPER
-  function tbl(headers, rows){
-    return e("div",{className:"tbl-wrap"},e("div",{className:"tbl-inner"},
-      e("table",null,
-        e("thead",null,e("tr",null,headers.map(function(h){return e("th",{key:h},h);}))),
-        e("tbody",null,rows.map(function(row,i){
-          return e("tr",{key:i},row.map(function(cell,j){return e("td",{key:j},cell);}));
-        }))
-      )
-    ));
-  }
-
-  return e("div",{className:"app"},
-    // SIDEBAR
-    e("aside",{className:"sidebar"},
-      e("div",{className:"sb-head"},
-        e("div",{className:"sb-title"},"Ampullarium"),
-        e("div",{className:"sb-sub"},"Manager"),
-        e("div",{style:{marginTop:10}},badge(mode==="admin"?"danger":"info",mode==="admin"?"Admin":"Betrachter"))
-      ),
-      e("nav",{className:"sb-nav"},
-        navItems.map(function(n){
-          return e("button",{key:n.id,className:"nav-btn",onClick:function(){setView(n.id);setSelAmp(null);},
-            style:{background:cur===n.id?"rgba(224,62,64,.14)":"transparent",color:cur===n.id?"#e03e40":"#8892a4",fontWeight:cur===n.id?700:400}},
-            n.lbl);
-        })
-      ),
-      e("div",{className:"sb-foot"},
-        saving&&e("div",{className:"saving"},"Speichern..."),
-        btn("Abmelden",function(){setMode(null);},{v:"gho",full:true})
-      )
-    ),
-
-    // MAIN
-    e("main",{className:"main"},
-      toast&&e("div",{className:"toast",style:{background:toast.t==="err"?"rgba(224,62,64,.14)":"rgba(46,196,182,.12)",color:toast.t==="err"?"#e03e40":"#2ec4b6",border:"1px solid rgba(0,0,0,.2)"}},toast.msg),
-
-      // DASHBOARD
-      view==="dashboard"&&e("div",null,
-        e("div",{className:"page-title"},"Uebersicht"),
-        e("div",{className:"stat-grid"},
-          [{lbl:"Ampullarien",val:data.amps.length,t:null},
-           {lbl:"Zentrallager",val:data.zl.length+" Artikel",t:null},
-           {lbl:"Kritisch",val:warnings.filter(function(w){return w.t==="danger";}).length,t:warnings.filter(function(w){return w.t==="danger";}).length>0?"danger":null},
-           {lbl:"Warnungen",val:warnings.filter(function(w){return w.t==="warning";}).length,t:warnings.filter(function(w){return w.t==="warning";}).length>0?"warning":null},
-          ].map(function(s){
-            return e("div",{key:s.lbl,className:"stat-card"},
-              e("div",{className:"stat-lbl"},s.lbl),
-              e("div",{className:"stat-val",style:{color:s.t?(s.t==="danger"?"#e03e40":"#f4b400"):"#e8eaf0"}},s.val)
-            );
-          })
-        ),
-        warnings.length>0?
-          e("div",{className:"warn-list"},
-            e("div",{className:"warn-head"},"Hinweise"),
-            warnings.map(function(w,i){
-              return e("div",{key:i,className:"warn-item",style:{background:w.t==="danger"?"rgba(224,62,64,.14)":"rgba(244,180,0,.12)",color:w.t==="danger"?"#e03e40":"#f4b400",borderBottom:i<warnings.length-1?"1px solid #2c3650":"none"}},
-                e("span",{style:{fontSize:8}},"o"),
-                e("span",null,w.msg)
-              );
-            })
-          ):
-          e("div",{className:"empty"},"Alles in Ordnung")
-      ),
-
-      // ZENTRALLAGER
-      view==="zentrallager"&&e("div",null,
-        e("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}},
-          e("div",{className:"page-title",style:{marginBottom:0}},"Zentrallager"),
-          mode==="admin"&&btn("+ Medikament",function(){setModal({t:"zl-add"});},{v:"pri"})
-        ),
-        data.zl.length?
-          tbl(
-            ["Name","Dosierung","Einheit","Bestand","Mindest.","Verfall"].concat(mode==="admin"?["Aktionen"]:[]),
-            data.zl.map(function(z){
-              var cells=[
-                e("strong",null,z.name),
-                e("span",{style:{color:"#8892a4"}},z.dosage||"--"),
-                e("span",{style:{color:"#8892a4"}},z.unit||"--"),
-                z.quantity||0,
-                e("span",{style:{color:"#4a5568"}},z.minStock||"--"),
-                expiryBadge(z.expiry)
-              ];
-              if(mode==="admin") cells.push(e("div",{style:{display:"flex",gap:6}},
-                btn("Bearb.",function(){setModal({t:"zl-edit",d:z});},{sm:true}),
-                btn("Losch.",function(){setModal({t:"confirm",msg:"Medikament loeschen?",fn:function(){delZl(z.id);}});},{v:"dan",sm:true})
-              ));
-              return cells;
-            })
-          ):
-          e("div",{className:"empty"},"Noch keine Eintraege")
-      ),
-
-      // AMPULLARIEN
-      view==="ampullarien"&&e("div",null,
-        e("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}},
-          e("div",{className:"page-title",style:{marginBottom:0}},"Ampullarien"),
-          mode==="admin"&&btn("+ Ampullarium",function(){setModal({t:"amp-add"});},{v:"pri"})
-        ),
-        !data.amps.length?e("div",{className:"empty"},"Noch keine Ampullarien"):
-          e("div",{className:"amp-grid"},
-            data.amps.map(function(a){
-              var iss=a.meds.filter(function(m){return (m.current||0)<(m.required||0)||expiryStatus(m.expiry)==="danger"||expiryStatus(m.expiry)==="warning";}).length;
-              var crit=a.meds.filter(function(m){return (m.current||0)===0||expiryStatus(m.expiry)==="danger";}).length;
-              return e("div",{key:a.id,className:"amp-card",onClick:function(){setSelAmp(a.id);setView("amp-detail");}},
-                e("div",{className:"amp-name"},a.name),
-                e("div",{className:"amp-desc"},a.description||"--"),
-                e("div",{className:"hint-row"},
-                  e("div",null,e("div",{className:"hint-num"},a.meds.length),e("div",{className:"hint-lbl"},"Medikamente")),
-                  iss>0&&e("div",null,e("div",{className:"hint-num",style:{color:crit>0?"#e03e40":"#f4b400"}},iss),e("div",{className:"hint-lbl"},"Hinweise"))
-                ),
-                mode==="admin"&&e("div",{style:{display:"flex",gap:6},onClick:function(ev){ev.stopPropagation();}},
-                  btn("Bearb.",function(){setModal({t:"amp-edit",d:a});},{sm:true}),
-                  btn("Losch.",function(){setModal({t:"confirm",msg:"Ampullarium loeschen?",fn:function(){delAmp(a.id);}});},{v:"dan",sm:true})
-                )
-              );
-            })
-          )
-      ),
-
-      // DETAIL
-      view==="amp-detail"&&amp&&e("div",null,
-        e("button",{className:"back-btn",onClick:function(){setView("ampullarien");setSelAmp(null);}},"<- Zurueck"),
-        e("div",{className:"detail-head"},
-          e("div",null,
-            e("div",{className:"page-title",style:{marginBottom:3}},amp.name),
-            e("div",{style:{fontSize:12,color:"#8892a4"}},amp.description||"--")
-          ),
-          mode==="admin"&&e("div",{className:"btn-row"},
-            btn("Auffuellen",function(){setModal({t:"refill",aid:amp.id});},{v:"grn"}),
-            btn("+ Medikament",function(){setModal({t:"amp-med-add",aid:amp.id});},{v:"pri"})
-          )
-        ),
-        amp.meds.length?
-          tbl(
-            ["Name","Dosierung","Einheit","Ist/Soll","Verfall"].concat(mode==="admin"?["Aktionen"]:[]),
-            amp.meds.map(function(m){
-              var cells=[
-                e("strong",null,m.name),
-                e("span",{style:{color:"#8892a4"}},m.dosage||"--"),
-                e("span",{style:{color:"#8892a4"}},m.unit||"--"),
-                stockBadge(m.current||0,m.required||0),
-                expiryBadge(m.expiry)
-              ];
-              if(mode==="admin") cells.push(e("div",{style:{display:"flex",gap:6}},
-                btn("Bearb.",function(){setModal({t:"amp-med-edit",aid:amp.id,med:m});},{sm:true}),
-                btn("Entf.",function(){setModal({t:"confirm",msg:"Entfernen?",fn:function(){delMed(amp.id,m.id);}});},{v:"dan",sm:true})
-              ));
-              return cells;
-            })
-          ):
-          e("div",{className:"empty"},"Keine Medikamente")
-      ),
-
-      // SETTINGS
-      view==="settings"&&mode==="admin"&&e("div",{style:{maxWidth:400}},
-        e("div",{className:"page-title"},"Einstellungen"),
-        e("div",{style:{background:"#161b27",border:"1px solid #2c3650",borderRadius:"10px",padding:22}},
-          e("div",{style:{fontSize:14,fontWeight:700,marginBottom:16}},"Passwoerter aendern"),
-          e(PwForm,{onSave:changePw})
-        )
-      )
-    ),
-
-    // MODALS
-    modal&&modal.t==="zl-add"&&e(Modal,{title:"Medikament hinzufuegen",onClose:function(){setModal(null);}},e(ZlForm,{onSave:addZl,onCancel:function(){setModal(null);}})),
-    modal&&modal.t==="zl-edit"&&e(Modal,{title:"Medikament bearbeiten",onClose:function(){setModal(null);}},e(ZlForm,{init:modal.d,onSave:function(i){editZl(modal.d.id,i);},onCancel:function(){setModal(null);}})),
-    modal&&modal.t==="amp-add"&&e(Modal,{title:"Ampullarium hinzufuegen",onClose:function(){setModal(null);},w:380},e(AmpForm,{onSave:addAmp,onCancel:function(){setModal(null);}})),
-    modal&&modal.t==="amp-edit"&&e(Modal,{title:"Ampullarium bearbeiten",onClose:function(){setModal(null);},w:380},e(AmpForm,{init:modal.d,onSave:function(a){editAmp(modal.d.id,a);},onCancel:function(){setModal(null);}})),
-    modal&&modal.t==="amp-med-add"&&e(Modal,{title:"Medikament hinzufuegen",onClose:function(){setModal(null);}},e(AmpMedForm,{zl:data.zl,onSave:function(m){addMed(modal.aid,m);},onCancel:function(){setModal(null);}})),
-    modal&&modal.t==="amp-med-edit"&&e(Modal,{title:"Medikament bearbeiten",onClose:function(){setModal(null);}},e(AmpMedForm,{zl:data.zl,init:modal.med,onSave:function(m){editMed(modal.aid,modal.med.id,m);},onCancel:function(){setModal(null);}})),
-    modal&&modal.t==="refill"&&e(Modal,{title:"Auffuellen",onClose:function(){setModal(null);},w:520},
-      e(RefillForm,{amp:data.amps.find(function(a){return a.id===modal.aid;}),zl:data.zl,onSave:function(r){refill(modal.aid,r);},onCancel:function(){setModal(null);}})
-    ),
-    modal&&modal.t==="confirm"&&e(Modal,{title:"Bestaetigen",onClose:function(){setModal(null);},w:340},
-      e("p",{style:{fontSize:13,color:"#8892a4",marginBottom:16,lineHeight:1.6}},modal.msg),
-      e("div",{style:{display:"flex",gap:8,justifyContent:"flex-end"}},
-        btn("Abbrechen",function(){setModal(null);},{v:"gho"}),
-        btn("Loeschen",modal.fn,{v:"dan"})
-      )
-    )
-  );
+      body.appendChild(zlSel.group);
+    }
+    var nm=makeInp("Name *",d.name);
+    var dos=makeInp("Dosierung",d.dosage);
+    var unit=makeInp("Einheit",d.unit);
+    var row=el("div",{"class":"form-row"});
+    var req=makeInp("Sollbestand",d.required,"number");
+    var cur=makeInp("Istbestand",d.current,"number");
+    row.appendChild(req.group); row.appendChild(cur.group);
+    var exp=makeInp("Verfall (JJJJ-MM)",d.expiry);
+    exp.input.placeholder="2026-12";
+    var actions=el("div",{"class":"form-actions"});
+    actions.appendChild(btn("Abbrechen",close,"btn btn-gho"));
+    actions.appendChild(btn("Speichern",function(){
+      var name=nm.val().trim();
+      if(!name){nm.input.focus();return;}
+      onSave({name:name,dosage:dos.val(),unit:unit.val()||"Ampulle",required:parseInt(req.val())||0,current:parseInt(cur.val())||0,expiry:exp.val()});
+      close();
+    },"btn btn-pri"));
+    [nm.group,dos.group,unit.group,row,exp.group,actions].forEach(function(n){body.appendChild(n);});
+  });
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App,null));
+function refillForm(amp){
+  openModal(function(head,body,close){
+    head.insertBefore(el("span",{"class":"modal-title"},["Auffüllen"]),head.firstChild);
+    var zl=state.data.zl;
+    if(!amp.meds.length){
+      body.appendChild(el("p",{"class":"empty"},["Keine Medikamente"]));
+      body.appendChild(btn("Schließen",close,"btn btn-gho"));
+      return;
+    }
+    body.appendChild(el("p",{style:{fontSize:12,color:"#8892a4",marginBottom:12}},["Quelle und Menge wählen."]));
+    var rows=amp.meds.map(function(m){
+      var wrap=el("div",{style:{background:"#1d2436",borderRadius:"6px",padding:"12px",marginBottom:"8px"}});
+      var lbl=el("div",{style:{fontSize:"13px",fontWeight:"700",marginBottom:"7px"}});
+      lbl.textContent=m.name;
+      var sub=el("span",{style:{fontWeight:"400",fontSize:"11px",color:"#8892a4",marginLeft:"8px"}});
+      sub.textContent="Ist: "+(m.current||0)+" / Soll: "+(m.required||0);
+      lbl.appendChild(sub);
+      wrap.appendChild(lbl);
+      var row=el("div",{style:{display:"flex",gap:"8px"}});
+      var src=el("select",{"class":"form-input",style:{flex:"3",padding:"7px 9px",fontSize:"12px"}});
+      src.appendChild(el("option",{value:""},"-- Quelle --"));
+      zl.forEach(function(z){src.appendChild(el("option",{value:z.id},[z.name+" ("+(z.quantity||0)+")"]));});
+      var qty=el("input",{"class":"form-input",type:"number",min:"0",value:"0",placeholder:"Menge",style:{flex:"1",padding:"7px 9px",fontSize:"12px"}});
+      row.appendChild(src); row.appendChild(qty);
+      wrap.appendChild(row);
+      body.appendChild(wrap);
+      return {medId:m.id,src:src,qty:qty};
+    });
+    var actions=el("div",{"class":"form-actions"});
+    actions.appendChild(btn("Abbrechen",close,"btn btn-gho"));
+    var doBtn=btn("Auffüllen",function(){
+      var refills=rows.filter(function(r){return r.src.value&&parseInt(r.qty.value)>0;}).map(function(r){return {medId:r.medId,zlId:r.src.value,qty:parseInt(r.qty.value)};});
+      if(!refills.length) return;
+      var nd=JSON.parse(JSON.stringify(state.data));
+      refills.forEach(function(r){
+        nd.zl=nd.zl.map(function(z){return z.id===r.zlId?Object.assign({},z,{quantity:Math.max(0,(z.quantity||0)-r.qty)}):z;});
+        nd.amps=nd.amps.map(function(a){return a.id===amp.id?Object.assign({},a,{meds:a.meds.map(function(m){return m.id===r.medId?Object.assign({},m,{current:(m.current||0)+r.qty}):m;})}):a;});
+      });
+      close();
+      doSave(nd);
+      showToast("Aufgefüllt");
+    },"btn btn-grn");
+    actions.appendChild(doBtn);
+    body.appendChild(actions);
+  },520);
+}
+
+function confirmModal(msg,onConfirm){
+  openModal(function(head,body,close){
+    head.insertBefore(el("span",{"class":"modal-title"},["Bestätigen"]),head.firstChild);
+    body.appendChild(el("p",{style:{fontSize:"13px",color:"#8892a4",marginBottom:"16px",lineHeight:"1.6"}},[msg]));
+    var actions=el("div",{"class":"form-actions"});
+    actions.appendChild(btn("Abbrechen",close,"btn btn-gho"));
+    actions.appendChild(btn("Löschen",function(){onConfirm();close();},"btn btn-dan"));
+    body.appendChild(actions);
+  },340);
+}
+
+function pwForm(){
+  openModal(function(head,body,close){
+    head.insertBefore(el("span",{"class":"modal-title"},["Passwörter ändern"]),head.firstChild);
+    var vp=makeInp("Neues Betrachter-Passwort","","password");
+    var ap=makeInp("Neues Admin-Passwort","","password");
+    var actions=el("div",{"class":"form-actions"});
+    actions.appendChild(btn("Abbrechen",close,"btn btn-gho"));
+    actions.appendChild(btn("Speichern",function(){
+      if(!vp.val()||!ap.val()) return;
+      var nd=Object.assign({},state.data,{vp:hp(vp.val()),ap:hp(ap.val())});
+      close();doSave(nd);
+    },"btn btn-pri"));
+    [vp.group,ap.group,actions].forEach(function(n){body.appendChild(n);});
+  },380);
+}
+
+// ─── VIEWS ───
+function renderDashboard(main){
+  var warnings=getWarnings();
+  main.appendChild(el("div",{"class":"page-title"},["Übersicht"]));
+  var grid=el("div",{"class":"stat-grid"});
+  var crit=warnings.filter(function(w){return w.t==="danger";}).length;
+  var warn=warnings.filter(function(w){return w.t==="warning";}).length;
+  [{lbl:"Ampullarien",val:state.data.amps.length,c:null},
+   {lbl:"Zentrallager",val:state.data.zl.length+" Artikel",c:null},
+   {lbl:"Kritisch",val:crit,c:crit>0?"#e03e40":null},
+   {lbl:"Warnungen",val:warn,c:warn>0?"#f4b400":null},
+  ].forEach(function(s){
+    var card=el("div",{"class":"stat-card"});
+    card.appendChild(el("div",{"class":"stat-lbl"},[s.lbl]));
+    var v=el("div",{"class":"stat-val"},[String(s.val)]);
+    if(s.c) v.style.color=s.c;
+    card.appendChild(v);
+    grid.appendChild(card);
+  });
+  main.appendChild(grid);
+  if(!warnings.length){
+    main.appendChild(el("div",{"class":"empty"},["Alles in Ordnung ✓"]));
+    return;
+  }
+  var wl=el("div",{"class":"warn-list"});
+  wl.appendChild(el("div",{"class":"warn-head"},["Hinweise"]));
+  warnings.forEach(function(w){
+    var item=el("div",{"class":"warn-item"});
+    item.style.background=w.t==="danger"?"rgba(224,62,64,.12)":"rgba(244,180,0,.1)";
+    item.style.color=w.t==="danger"?"#e03e40":"#f4b400";
+    item.style.borderBottom="1px solid #2c3650";
+    item.appendChild(el("span",{style:{fontSize:"8px"}},["●"]));
+    item.appendChild(el("span",{},[w.msg]));
+    wl.appendChild(item);
+  });
+  main.appendChild(wl);
+}
+
+function renderZentrallager(main){
+  var header=el("div",{"class":"page-header"});
+  header.appendChild(el("div",{"class":"page-title"},["Zentrallager"]));
+  if(state.mode==="admin"){
+    var addBtn=btn("+ Medikament",function(){
+      zlForm(null,function(item){
+        var nd=Object.assign({},state.data,{zl:state.data.zl.concat([Object.assign({},item,{id:genId()})])});
+        doSave(nd);
+      });
+    },"btn btn-pri");
+    header.appendChild(addBtn);
+  }
+  main.appendChild(header);
+  if(!state.data.zl.length){main.appendChild(el("div",{"class":"empty"},["Noch keine Einträge"]));return;}
+  var hdrs=["Name","Dosierung","Einheit","Bestand","Mindest.","Verfall"];
+  if(state.mode==="admin") hdrs.push("Aktionen");
+  var tbody=el("tbody");
+  state.data.zl.forEach(function(z){
+    var tr=el("tr");
+    var cells=[
+      el("td",{},[el("strong",{},[z.name])]),
+      el("td",{style:{color:"#8892a4"}},[z.dosage||"--"]),
+      el("td",{style:{color:"#8892a4"}},[z.unit||"--"]),
+      el("td",{},[String(z.quantity||0)]),
+      el("td",{style:{color:"#4a5568"}},[String(z.minStock||"--")]),
+      el("td",{},[expiryBadge(z.expiry)])
+    ];
+    if(state.mode==="admin"){
+      var acts=el("td");
+      var row=el("div",{style:{display:"flex",gap:"6px"}});
+      var editBtn=btn("Bearbeiten",function(){
+        zlForm(z,function(item){
+          var nd=Object.assign({},state.data,{zl:state.data.zl.map(function(x){return x.id===z.id?Object.assign({},x,item):x;})});
+          doSave(nd);
+        });
+      },"btn btn-sec btn-sm");
+      var delBtn=btn("Löschen",function(){
+        confirmModal("Medikament löschen?",function(){
+          var nd=Object.assign({},state.data,{zl:state.data.zl.filter(function(x){return x.id!==z.id;})});
+          doSave(nd);
+        });
+      },"btn btn-dan btn-sm");
+      row.appendChild(editBtn);row.appendChild(delBtn);acts.appendChild(row);
+      cells.push(acts);
+    }
+    cells.forEach(function(c){tr.appendChild(c);});
+    tbody.appendChild(tr);
+  });
+  var thead=el("thead");
+  var hr=el("tr");
+  hdrs.forEach(function(h){hr.appendChild(el("th",{},[h]));});
+  thead.appendChild(hr);
+  main.appendChild(el("div",{"class":"tbl-wrap"},[el("div",{"class":"tbl-inner"},[el("table",{},[thead,tbody])])]));
+}
+
+function renderAmpullarien(main){
+  var header=el("div",{"class":"page-header"});
+  header.appendChild(el("div",{"class":"page-title"},["Ampullarien"]));
+  if(state.mode==="admin"){
+    header.appendChild(btn("+ Ampullarium",function(){
+      ampForm(null,function(a){
+        var nd=Object.assign({},state.data,{amps:state.data.amps.concat([Object.assign({},a,{id:genId(),meds:[]})])});
+        doSave(nd);
+      });
+    },"btn btn-pri"));
+  }
+  main.appendChild(header);
+  if(!state.data.amps.length){main.appendChild(el("div",{"class":"empty"},["Noch keine Ampullarien"]));return;}
+  var grid=el("div",{"class":"amp-grid"});
+  state.data.amps.forEach(function(a){
+    var iss=a.meds.filter(function(m){return (m.current||0)<(m.required||0)||expiryStatus(m.expiry)==="danger"||expiryStatus(m.expiry)==="warning";}).length;
+    var crit=a.meds.filter(function(m){return (m.current||0)===0||expiryStatus(m.expiry)==="danger";}).length;
+    var card=el("div",{"class":"amp-card"});
+    card.addEventListener("click",function(){state.selAmp=a.id;setView("amp-detail");});
+    var nm=el("div",{style:{fontSize:"17px",fontWeight:"800",marginBottom:"3px"}},[a.name]);
+    var desc=el("div",{style:{fontSize:"11px",color:"#8892a4",marginBottom:"14px"}},[a.description||"--"]);
+    var hints=el("div",{"class":"hint-row"});
+    var h1=el("div");
+    h1.appendChild(el("div",{"class":"hint-num"},[String(a.meds.length)]));
+    h1.appendChild(el("div",{"class":"hint-lbl"},["Medikamente"]));
+    hints.appendChild(h1);
+    if(iss>0){
+      var h2=el("div");
+      var hv=el("div",{"class":"hint-num"},[String(iss)]);
+      hv.style.color=crit>0?"#e03e40":"#f4b400";
+      h2.appendChild(hv);
+      h2.appendChild(el("div",{"class":"hint-lbl"},["Hinweise"]));
+      hints.appendChild(h2);
+    }
+    card.appendChild(nm);card.appendChild(desc);card.appendChild(hints);
+    if(state.mode==="admin"){
+      var actRow=el("div",{style:{display:"flex",gap:"6px"}});
+      actRow.addEventListener("click",function(ev){ev.stopPropagation();});
+      actRow.appendChild(btn("Bearbeiten",function(){
+        ampForm(a,function(upd){
+          var nd=Object.assign({},state.data,{amps:state.data.amps.map(function(x){return x.id===a.id?Object.assign({},x,upd):x;})});
+          doSave(nd);
+        });
+      },"btn btn-sec btn-sm"));
+      actRow.appendChild(btn("Löschen",function(){
+        confirmModal("Ampullarium löschen?",function(){
+          var nd=Object.assign({},state.data,{amps:state.data.amps.filter(function(x){return x.id!==a.id;})});
+          if(state.selAmp===a.id){state.selAmp=null;state.view="ampullarien";}
+          doSave(nd);
+        });
+      },"btn btn-dan btn-sm"));
+      card.appendChild(actRow);
+    }
+    grid.appendChild(card);
+  });
+  main.appendChild(grid);
+}
+
+function renderAmpDetail(main){
+  var amp=state.data.amps.find(function(a){return a.id===state.selAmp;});
+  if(!amp){setView("ampullarien");return;}
+  var back=el("button",{"class":"back-btn"},["← Zurück"]);
+  back.addEventListener("click",function(){state.selAmp=null;setView("ampullarien");});
+  main.appendChild(back);
+  var header=el("div",{"class":"page-header"});
+  var info=el("div");
+  info.appendChild(el("div",{"class":"page-title",style:{marginBottom:"3px"}},[amp.name]));
+  info.appendChild(el("div",{style:{fontSize:"12px",color:"#8892a4"}},[amp.description||"--"]));
+  header.appendChild(info);
+  if(state.mode==="admin"){
+    var row=el("div",{"class":"btn-row"});
+    row.appendChild(btn("Auffüllen",function(){refillForm(amp);},"btn btn-grn"));
+    row.appendChild(btn("+ Medikament",function(){
+      ampMedForm(null,amp.id,function(m){
+        var nd=Object.assign({},state.data,{amps:state.data.amps.map(function(a){return a.id===amp.id?Object.assign({},a,{meds:a.meds.concat([Object.assign({},m,{id:genId()})])}):a;})});
+        doSave(nd);
+      });
+    },"btn btn-pri"));
+    header.appendChild(row);
+  }
+  main.appendChild(header);
+  if(!amp.meds.length){main.appendChild(el("div",{"class":"empty"},["Keine Medikamente"]));return;}
+  var hdrs=["Name","Dosierung","Einheit","Ist/Soll","Verfall"];
+  if(state.mode==="admin") hdrs.push("Aktionen");
+  var tbody=el("tbody");
+  amp.meds.forEach(function(m){
+    var tr=el("tr");
+    var cells=[
+      el("td",{},[el("strong",{},[m.name])]),
+      el("td",{style:{color:"#8892a4"}},[m.dosage||"--"]),
+      el("td",{style:{color:"#8892a4"}},[m.unit||"--"]),
+      el("td",{},[stockBadge(m.current||0,m.required||0)]),
+      el("td",{},[expiryBadge(m.expiry)])
+    ];
+    if(state.mode==="admin"){
+      var acts=el("td");
+      var arow=el("div",{style:{display:"flex",gap:"6px"}});
+      arow.appendChild(btn("Bearbeiten",function(){
+        ampMedForm(m,amp.id,function(upd){
+          var nd=Object.assign({},state.data,{amps:state.data.amps.map(function(a){return a.id===amp.id?Object.assign({},a,{meds:a.meds.map(function(x){return x.id===m.id?Object.assign({},x,upd):x;})}):a;})});
+          doSave(nd);
+        });
+      },"btn btn-sec btn-sm"));
+      arow.appendChild(btn("Entfernen",function(){
+        confirmModal("Medikament entfernen?",function(){
+          var nd=Object.assign({},state.data,{amps:state.data.amps.map(function(a){return a.id===amp.id?Object.assign({},a,{meds:a.meds.filter(function(x){return x.id!==m.id;})}):a;})});
+          doSave(nd);
+        });
+      },"btn btn-dan btn-sm"));
+      acts.appendChild(arow);cells.push(acts);
+    }
+    cells.forEach(function(c){tr.appendChild(c);});
+    tbody.appendChild(tr);
+  });
+  var thead=el("thead");
+  var hr=el("tr");
+  hdrs.forEach(function(h){hr.appendChild(el("th",{},[h]));});
+  thead.appendChild(hr);
+  main.appendChild(el("div",{"class":"tbl-wrap"},[el("div",{"class":"tbl-inner"},[el("table",{},[thead,tbody])])]));
+}
+
+function renderSettings(main){
+  main.appendChild(el("div",{"class":"page-title"},["Einstellungen"]));
+  var card=el("div",{"class":"settings-card"});
+  card.appendChild(el("div",{"class":"settings-subtitle"},["Passwörter ändern"]));
+  var openBtn=btn("Passwörter ändern",pwForm,"btn btn-sec");
+  card.appendChild(openBtn);
+  main.appendChild(card);
+}
+
+function getWarnings(){
+  var w=[];
+  state.data.zl.forEach(function(z){
+    var st=expiryStatus(z.expiry);
+    if(st==="danger"||st==="warning") w.push({t:st,msg:"ZL: "+z.name+" - Verfall "+z.expiry});
+    if(z.minStock&&(z.quantity||0)<z.minStock) w.push({t:"warning",msg:"ZL: "+z.name+" - Bestand niedrig"});
+  });
+  state.data.amps.forEach(function(a){
+    a.meds.forEach(function(m){
+      var st=expiryStatus(m.expiry);
+      if(st==="danger"||st==="warning") w.push({t:st,msg:a.name+": "+m.name+" - Verfall "+m.expiry});
+      if((m.current||0)<(m.required||0)) w.push({t:(m.current||0)===0?"danger":"warning",msg:a.name+": "+m.name+" - "+(m.current||0)+"/"+(m.required||0)});
+    });
+  });
+  return w;
+}
+
+// ─── SIDEBAR ───
+function renderSidebar(sb){
+  sb.innerHTML="";
+  var head=el("div",{"class":"sb-head"});
+  head.appendChild(el("div",{"class":"sb-title"},["Ampullarium"]));
+  head.appendChild(el("div",{"class":"sb-sub"},["Manager"]));
+  head.appendChild(el("div",{style:{marginTop:"10px"}},[badge(state.mode==="admin"?"badge-danger":"badge-info",state.mode==="admin"?"Admin":"Betrachter")]));
+  sb.appendChild(head);
+  var nav=el("div",{"class":"sb-nav"});
+  var items=[{id:"dashboard",lbl:"Übersicht"},{id:"zentrallager",lbl:"Zentrallager"},{id:"ampullarien",lbl:"Ampullarien"}];
+  if(state.mode==="admin") items.push({id:"settings",lbl:"Einstellungen"});
+  var cur=state.view==="amp-detail"?"ampullarien":state.view;
+  items.forEach(function(it){
+    var b=el("button",{"class":"nav-btn"+(cur===it.id?" active":"")"},[it.lbl]);
+    b.addEventListener("click",function(){state.selAmp=null;setView(it.id);});
+    nav.appendChild(b);
+  });
+  sb.appendChild(nav);
+  var foot=el("div",{"class":"sb-foot"});
+  var sav=el("div",{"class":"saving",id:"saving-indicator",style:{display:state.saving?"block":"none"}},["Speichern..."]);
+  foot.appendChild(sav);
+  foot.appendChild(btn("Abmelden",function(){state.mode=null;renderLogin();},"btn btn-gho btn-full"));
+  sb.appendChild(foot);
+}
+
+// ─── RENDER ───
+function setView(v){state.view=v;render();}
+
+function render(){
+  if(!state.data||!state.mode){renderLogin();return;}
+  document.getElementById("loading").style.display="none";
+  document.getElementById("login").style.display="none";
+  var appEl=document.getElementById("app");
+  appEl.style.display="flex";
+  var sb=appEl.querySelector(".sidebar");
+  var main=appEl.querySelector(".main");
+  if(!sb){sb=el("div",{"class":"sidebar"});appEl.appendChild(sb);}
+  if(!main){main=el("div",{"class":"main"});appEl.appendChild(main);}
+  renderSidebar(sb);
+  main.innerHTML="";
+  if(state.view==="dashboard") renderDashboard(main);
+  else if(state.view==="zentrallager") renderZentrallager(main);
+  else if(state.view==="ampullarien") renderAmpullarien(main);
+  else if(state.view==="amp-detail") renderAmpDetail(main);
+  else if(state.view==="settings") renderSettings(main);
+}
+
+function renderLogin(){
+  document.getElementById("loading").style.display="none";
+  document.getElementById("app").style.display="none";
+  var loginEl=document.getElementById("login");
+  loginEl.style.display="flex";
+  var firstTime=!state.data||(!state.data.zl.length&&!state.data.amps.length);
+  var box=el("div",{"class":"login-box"});
+  box.appendChild(el("div",{"class":"login-title"},["Ampullarium Manager"]));
+  box.appendChild(el("div",{"class":"login-sub"},["Medikamentenverwaltung"]));
+  if(firstTime){
+    var info=el("div",{"class":"info-box"});
+    info.innerHTML="Standard-Passwörter:<br><strong>rettung</strong> (Betrachter) / <strong>admin2025</strong> (Admin)";
+    box.appendChild(info);
+  }
+  var errBox=el("div",{"class":"err-box hidden"});
+  box.appendChild(errBox);
+  var pwInp=makeInp("Passwort","","password");
+  box.appendChild(pwInp.group);
+  var loginBtn=btn("Anmelden",function(){
+    var pw=pwInp.val();
+    if(!state.data){return;}
+    if(hp(pw)===state.data.ap){state.mode="admin";render();}
+    else if(hp(pw)===state.data.vp){state.mode="viewer";render();}
+    else{errBox.textContent="Falsches Passwort";errBox.classList.remove("hidden");}
+  },"btn btn-pri btn-full");
+  box.appendChild(loginBtn);
+  pwInp.input.addEventListener("keydown",function(e){if(e.key==="Enter")loginBtn.click();});
+  box.appendChild(el("p",{style:{fontSize:"11px",color:"#4a5568",textAlign:"center",marginTop:"12px"}},["Betrachter: lesen | Admin: bearbeiten"]));
+  loginEl.innerHTML="";
+  loginEl.appendChild(box);
+  pwInp.input.focus();
+}
+
+// ─── INIT ───
+loadData().then(function(d){
+  state.data=d;
+  document.getElementById("loading").style.display="none";
+  renderLogin();
+});
 </script>
 </body>
 </html>
